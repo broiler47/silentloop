@@ -64,15 +64,20 @@ void Event::_onCreated(const std::weak_ptr<Event> &self)
     m_self = self;
 }
 
-void Event::_onAttached(EventLoopBase* pEL, EventLoopBase::EventHandle handle)
+bool Event::_onAttach(EventLoopBase* pEL, EventLoopBase::EventHandle handle)
 {
     assert(pEL);
     assert(handle);
 
     assert(!m_pEL);
     assert(!m_handle);
+    if(m_pEL || m_handle)
+        return false;
 
     m_pEL = pEL;
+    m_handle = handle;
+
+    return true;
 }
 
 void Event::_onDetached(void)

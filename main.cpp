@@ -6,9 +6,11 @@
 
 static void _ev_main(EventLoopBase& eventLoop)
 {
+    std::cout << "<=== START ===>\n";
+
     SetTimeout(eventLoop, [](){
         std::cout << "Hello, World!\n";
-    }, 1000);
+    }, 3000);
 }
 
 int main(void)

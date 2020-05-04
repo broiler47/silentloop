@@ -9,6 +9,8 @@
 
 class Event
 {
+    friend class EventLoop;
+
     public:
         template <typename TEvent>
         static std::shared_ptr<TEvent> CreateEvent(void)
@@ -36,6 +38,7 @@ class Event
     protected:
         virtual int GetFD(void) const { return -1; }
 
+    // For internal use of derivatives of Event object
     protected:
         EventLoopBase& EventLoop(void);
         void Attach(EventLoopBase& eventLoop);
@@ -46,7 +49,10 @@ class Event
 
     private:
         void _onCreated(const std::weak_ptr<Event>& self);
-        void _onAttached(EventLoopBase* pEL, EventLoopBase::EventHandle handle);
+
+    // Intended to use only by EventLoop
+    protected:
+        bool _onAttach(EventLoopBase* pEL, EventLoopBase::EventHandle handle);
         void _onDetached(void);
 
     private:

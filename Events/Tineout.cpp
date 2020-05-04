@@ -27,6 +27,8 @@ void TimeoutEvent::OnTimeout(void)
 {
     Event::OnTimeout();
 
+    Detach();
+
     if(m_cb)
         m_cb();
 }
