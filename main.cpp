@@ -1,23 +1,26 @@
-#include <iostream>
-
+#include "Log.h"
 #include "EventLoop.h"
 
 #include "Events/Tineout.h"
 
 static void _ev_main(EventLoopBase& eventLoop)
 {
-    std::cout << "<=== START ===>\n";
+    INFO("<=== START ===>");
 
     SetTimeout(eventLoop, [](){
-        std::cout << "Hello, World!\n";
+        INFO("Hello, World!");
     }, 3000);
 }
 
 int main(void)
 {
+    Log::Instance().AddDestination(stdout);
+
     EventLoop eventLoop(&_ev_main);
 
     eventLoop.Run();
+
+    Log::Destroy();
 
     return 0;
 }
