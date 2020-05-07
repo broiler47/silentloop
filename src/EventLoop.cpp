@@ -196,6 +196,8 @@ bool EventLoop::_tick(void)
             CATCH_ALL(pEventInfo->spEvent->OnClose());
     }
 
+    _processPendingRemovals();
+
     // TODO: Implement
 
     return !m_lstEvents.empty();
