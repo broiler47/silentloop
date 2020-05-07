@@ -6,7 +6,8 @@
 #define EVENTLOOP_H_021BAF9BC98F45CD80DD6D0B2B2366D8
 
 #include "EventLoopBase.h"
-#include "Events/EventBase.h"
+#include "Events/core/Event.h"
+#include "IOMux/IOMux.h"
 
 #include <functional>
 #include <list>
@@ -17,8 +18,9 @@
 class EventLoop : public EventLoopBase
 {
     public:
-        explicit EventLoop(std::function<void(EventLoopBase&)>  cbInit = nullptr);
-        virtual ~EventLoop(void);
+        explicit EventLoop(std::function<void(EventLoopBase&)>  cbInit = nullptr,
+                           std::shared_ptr<IOMuxBase> spFDMux = IOMux_epoll::Create());
+        ~EventLoop(void) override;
 
     public:
         bool Add(const std::shared_ptr<Event>& spEvent) override;
@@ -28,6 +30,7 @@ class EventLoop : public EventLoopBase
 
     protected:
         void _removeEvent(EventHandle hEvent) override;
+        void _notifyIOEventMaskUpdate(EventHandle hEvent, int fd, unsigned int mask) override;
         void _setTimeout(EventHandle hEvent, TimeInterval timeout) override;
         void _cancelTimeout(EventHandle hEvent) override;
 
@@ -75,6 +78,7 @@ class EventLoop : public EventLoopBase
         std::list<std::unique_ptr<_eventInfo>> m_lstEvents;
         std::vector<EventHandle> m_vecRMPending;
         ELTimerQueueComparator::TimerQueue m_qTimeouts;
+        std::shared_ptr<IOMuxBase> m_spIOMux;
 };
 
 #endif //EVENTLOOP_H_021BAF9BC98F45CD80DD6D0B2B2366D8

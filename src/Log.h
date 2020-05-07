@@ -7,6 +7,8 @@
 
 #include <cstdio>
 #include <vector>
+#include <cerrno>
+#include <cstring>
 
 class Log
 {
@@ -48,5 +50,7 @@ class Log
 #define INFO(...)    (Log::Instance().Write(Log::Level::INFO,     __VA_ARGS__))
 #define WARNING(...) (Log::Instance().Write(Log::Level::WARNING,  __VA_ARGS__))
 #define ERROR(...)   (Log::Instance().Write(Log::Level::ERROR,    __VA_ARGS__))
+
+#define SYSCALL_ERROR(name) ERROR("%s failed (%d): %s", (name), errno, strerror(errno))
 
 #endif //LOG_H_75FE5A1CE8164DEF8906CF3760DFBEBB

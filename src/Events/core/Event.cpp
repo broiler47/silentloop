@@ -2,37 +2,36 @@
 // Created by palulukan on 5/2/20.
 //
 
-#include "EventBase.h"
+#include "Event.h"
 
 #include <cassert>
 
-#include <unistd.h>
+//EventLoopBase& Event::_eventLoop(void)
+//{
+//    assert(m_pEL);
+//
+//    return *m_pEL;
+//}
 
-EventLoopBase& Event::EventLoop(void)
-{
-    assert(m_pEL);
-
-    return *m_pEL;
-}
-
-void Event::Attach(EventLoopBase &eventLoop)
+void Event::_attach(EventLoopBase &eventLoop)
 {
     assert(!m_pEL);
     assert(!m_handle);
 
     auto spSelf = m_self.lock();
 
-    assert(spSelf);
+    if(!spSelf)
+        throw std::runtime_error("Attempting ot attach unreferenced event. Please make sure that event objects are always created with Event::CreateEvent()!");
 
     eventLoop.Add(spSelf);
 }
 
-bool Event::isAttached(void) const
+bool Event::_isAttached(void) const
 {
     return m_pEL != nullptr;
 }
 
-void Event::Detach(void)
+void Event::_detach(void)
 {
     assert(m_pEL);
     assert(m_handle);
@@ -40,7 +39,7 @@ void Event::Detach(void)
     m_pEL->_removeEvent(m_handle);
 }
 
-void Event::SetTimeout(EventLoopBase::TimeInterval timeout)
+void Event::_setTimeout(EventLoopBase::TimeInterval timeout)
 {
     assert(m_pEL);
     assert(m_handle);
@@ -48,12 +47,20 @@ void Event::SetTimeout(EventLoopBase::TimeInterval timeout)
     m_pEL->_setTimeout(m_handle, timeout);
 }
 
-void Event::CancelTimeout(void)
+void Event::_cancelTimeout(void)
 {
     assert(m_pEL);
     assert(m_handle);
 
     m_pEL->_cancelTimeout(m_handle);
+}
+
+void Event::_notifyIOEventMaskUpdate(int fd, unsigned int mask)
+{
+    assert(m_pEL);
+    assert(m_handle);
+
+    m_pEL->_notifyIOEventMaskUpdate(m_handle, fd, mask);
 }
 
 void Event::_onCreated(const std::weak_ptr<Event> &self)
@@ -64,20 +71,16 @@ void Event::_onCreated(const std::weak_ptr<Event> &self)
     m_self = self;
 }
 
-bool Event::_onAttach(EventLoopBase* pEL, EventLoopBase::EventHandle handle)
+void Event::_onAttach(EventLoopBase* pEL, EventLoopBase::EventHandle handle)
 {
     assert(pEL);
     assert(handle);
 
     assert(!m_pEL);
     assert(!m_handle);
-    if(m_pEL || m_handle)
-        return false;
 
     m_pEL = pEL;
     m_handle = handle;
-
-    return true;
 }
 
 void Event::_onDetached(void)
@@ -87,15 +90,4 @@ void Event::_onDetached(void)
 
     m_pEL = nullptr;
     m_handle = nullptr;
-}
-
-IOEvent::~IOEvent(void)
-{
-    if(m_fd >= 0)
-    {
-        assert(false);
-
-        close(m_fd);
-        m_fd = -1;
-    }
 }

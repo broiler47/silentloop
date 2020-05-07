@@ -22,11 +22,12 @@ class EventLoopBase
     public:
         virtual bool Add(const std::shared_ptr<Event>& spEvent) = 0;
 
-    protected:
+    public:
         typedef void* EventHandle;
 
     protected:
         virtual void _removeEvent(EventHandle hEvent) = 0;
+        virtual void _notifyIOEventMaskUpdate(EventHandle hEvent, int fd, unsigned int mask) = 0;
         virtual void _setTimeout(EventHandle hEvent, TimeInterval timeout) = 0;
         virtual void _cancelTimeout(EventHandle hEvent) = 0;
 };

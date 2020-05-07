@@ -4,38 +4,38 @@
 
 #include "Tineout.h"
 
-void TimeoutEvent::Arm(EventLoopBase &eventLoop, const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
+#include "Utils.h"
+
+void TimeoutEvent::Arm(EventLoopBase &eventLoop, EventLoopBase::TimeInterval timeout)
 {
     Cancel();
 
-    m_cb = cb;
-
-    Attach(eventLoop);
-    SetTimeout(timeout);
+    _attach(eventLoop);
+    _setTimeout(timeout);
 }
 
 void TimeoutEvent::Cancel(void)
 {
-    if(!isAttached())
+    if(!_isAttached())
         return;
 
-    CancelTimeout();
-    Detach();
+    _cancelTimeout();
+    _detach();
 }
 
 void TimeoutEvent::OnTimeout(void)
 {
     Event::OnTimeout();
 
-    Detach();
+    _detach();
 
-    if(m_cb)
-        m_cb();
+    EMIT_EVENT(timeout);
 }
 
 std::shared_ptr<TimeoutEvent> SetTimeout(EventLoopBase &eventLoop, const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
 {
     auto sp = Event::CreateEvent<TimeoutEvent>();
-    sp->Arm(eventLoop, cb, timeout);
+    sp->on_timeout(cb);
+    sp->Arm(eventLoop, timeout);
     return sp;
 }
