@@ -24,7 +24,7 @@ static void _ev_main(EventLoopBase& eventLoop)
     });
 
     spListener->on_listening([](void) {
-        ERROR("Listening...");
+        INFO("Listening...");
     });
 
     spListener->on_connection([](int fdClient) {
