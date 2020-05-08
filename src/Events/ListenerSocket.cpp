@@ -42,9 +42,7 @@ void ListenerSocket::OnRead(void)
             break;
         else
         {
-            const char *szError = strerror(errno);
-            SYSCALL_ERROR("accept4()");
-            EMIT_EVENT(error, std::string("accept4() failed: ") + szError);
+            EMIT_EVENT(error, Error("accept4() failed", errno));
             break;
         }
     }

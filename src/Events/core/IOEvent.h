@@ -9,6 +9,8 @@
 
 class IOEvent : public Event
 {
+    EXPORT_EVENT(close)
+
     public:
         ~IOEvent(void) override;
 

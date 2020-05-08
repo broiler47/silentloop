@@ -20,15 +20,21 @@ static void _ev_main(EventLoopBase& eventLoop)
     }
 
     spListener->on_error([](const Error& err) {
-        ERROR("Listener socket error: %s", err.What());
+        ERROR("Listener socket error: %s", err.Format());
     });
 
     spListener->on_listening([](void) {
         INFO("Listening...");
     });
 
-    spListener->on_connection([](int fdClient) {
+    spListener->on_close([](void) {
+        INFO("Listener closed");
+    });
+
+    spListener->on_connection([spListener](int fdClient) {
         DEBUG("Incoming connection: %d", fdClient);
+
+        spListener->Close();
     });
 }
 

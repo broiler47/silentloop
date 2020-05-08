@@ -31,7 +31,7 @@ const char *Error::Format(void) const
         strm << "Error: " << m_strWhat;
 
         if(m_nErrno)
-            strm << "; errno: " << m_nErrno << "(" << strerror(m_nErrno) << ")";
+            strm << "; errno: " << m_nErrno << " (" << strerror(m_nErrno) << ")";
 
         strm << "\n";
 

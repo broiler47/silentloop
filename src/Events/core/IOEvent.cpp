@@ -50,11 +50,16 @@ bool IOEvent::EnableNonBlockingFD(bool enable)
 void IOEvent::Close(void)
 {
     if(_isAttached())
-        _detach();
+    {
+        _nextTick([this](void) {
+            EMIT_EVENT(close);
 
-    _close();
-
-    SetIOEventMask(0);
+            _detach();
+            _close();
+        });
+    }
+    else
+        _close();
 }
 
 void IOEvent::SetFD(int fd, unsigned int mask)
@@ -89,4 +94,6 @@ void IOEvent::_close(void)
         close(m_fd);
         m_fd = -1;
     }
+
+    m_IOEventMask = 0;
 }
