@@ -53,15 +53,20 @@ void IOEvent::Close(void)
         _detach();
 
     _close();
+
     SetIOEventMask(0);
 }
 
-void IOEvent::SetFD(int fd)
+void IOEvent::SetFD(int fd, unsigned int mask)
 {
     assert(fd >= 0);
     assert(m_fd < 0);
 
     m_fd = fd;
+    m_IOEventMask = mask;
+
+    if(_isAttached())
+        _notifyIOStateChange();
 }
 
 void IOEvent::SetIOEventMask(unsigned int mask)
@@ -72,7 +77,7 @@ void IOEvent::SetIOEventMask(unsigned int mask)
     m_IOEventMask = mask;
 
     if(_isAttached())
-        _notifyIOEventMaskUpdate(m_fd, m_IOEventMask);
+        _notifyIOStateChange();
 }
 
 void IOEvent::_close(void)

@@ -58,7 +58,7 @@ bool IOMux_epoll::UpdateIOEventMask(int fd, unsigned int mask, EventLoopBase::Ev
 
 bool IOMux_epoll::Poll(int timeout, std::vector<std::pair<EventLoopBase::EventHandle, unsigned int>>& res)
 {
-    int nReady = TEMP_FAILURE_RETRY(epoll_wait(m_fdEpoll, m_vecReadyEvents.data(), int(m_vecReadyEvents.size()), timeout));
+    auto nReady = TEMP_FAILURE_RETRY(epoll_wait(m_fdEpoll, m_vecReadyEvents.data(), int(m_vecReadyEvents.size()), timeout));
     if(nReady < 0)
     {
         SYSCALL_ERROR("epoll_wait()");

@@ -30,7 +30,7 @@ class EventLoop : public EventLoopBase
 
     protected:
         void _removeEvent(EventHandle hEvent) override;
-        void _notifyIOEventMaskUpdate(EventHandle hEvent, int fd, unsigned int mask) override;
+        void _notifyIOStateChange(EventHandle hEvent) override;
         void _setTimeout(EventHandle hEvent, TimeInterval timeout) override;
         void _cancelTimeout(EventHandle hEvent) override;
 
@@ -38,6 +38,7 @@ class EventLoop : public EventLoopBase
         bool _tick(void);
         bool _isRegistered(EventHandle hEvent);
         void _processPendingRemovals(void);
+        bool _updateIOFD(EventHandle hEvent);
 
     private:
         enum _eventFlags : unsigned int
@@ -53,7 +54,9 @@ class EventLoop : public EventLoopBase
                 itEvent(),
                 pEventLoop(pEL),
                 tpNextTimeout(),
-                flags(0)
+                flags(0),
+                fdRegistered(-1),
+                nIOEventMask(0)
             {}
 
             std::shared_ptr<Event> spEvent;
@@ -61,6 +64,8 @@ class EventLoop : public EventLoopBase
             EventLoop *pEventLoop;
             std::chrono::time_point<std::chrono::steady_clock> tpNextTimeout;
             unsigned int flags;
+            int fdRegistered;
+            unsigned int nIOEventMask;
         };
 
         struct ELTimerQueueComparator

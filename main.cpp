@@ -19,8 +19,12 @@ static void _ev_main(EventLoopBase& eventLoop)
         exit(1);
     }
 
-    spListener->on_error([](const std::string& what) {
-        ERROR("Listener socket error: %s", what.c_str());
+    spListener->on_error([](const Error& err) {
+        ERROR("Listener socket error: %s", err.What());
+    });
+
+    spListener->on_listening([](void) {
+        ERROR("Listening...");
     });
 
     spListener->on_connection([](int fdClient) {

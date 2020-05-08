@@ -6,40 +6,25 @@
 
 #include "Log.h"
 
+#include <cassert>
+
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
 
-void ListenerSocket::Detach(void)
+bool ListenerSocket::_listen(int fd, int backlog)
 {
-    if(_isAttached())
-        IOEvent::_detach();
-}
+    assert(fd >= 0);
 
-// TODO: Propagate errors asynchronously?
-
-bool ListenerSocket::_listen(EventLoopBase& eventLoop, int backlog)
-{
-    Detach();
-
-    if(GetFD() < 0)
+    if(listen(fd, backlog) < 0)
     {
-        ERROR("Attempting to listen on closed socket");
+        EMIT_EVENT(error, Error("Could not start listening socket", errno));
         return false;
     }
 
-    if(!(GetIOEventMask() & IOEvents::IOEV_READ))
-    {
-        if(listen(GetFD(), backlog) < 0)
-        {
-            SYSCALL_ERROR("listen()");
-            return false;
-        }
+    SetFD(fd, IOEvents::IOEV_READ);
 
-        SetIOEventFlag(IOEvents::IOEV_READ);
-    }
-
-    _attach(eventLoop);
+    EMIT_EVENT(listening);
 
     return true;
 }
@@ -69,78 +54,89 @@ void ListenerSocket::OnError(void)
 {
     Event::OnError();
 
-    EMIT_EVENT(error, "Socket error");
+    EMIT_EVENT(error, Error("Socket error"));
 }
 
-bool TCPListenerSocket::Open(EventLoopBase& eventLoop, const std::string& strHost, uint16_t nPort, bool bInet6, int backlog)
+void TCPListenerSocket::_open(EventLoopBase& eventLoop, const std::string& strHost, uint16_t nPort, bool bInet6, int backlog)
 {
-    Close();
+    _attach(eventLoop);
 
-    const auto aiFamily = bInet6 ? AF_INET6 : AF_INET;
+    _nextTick([=, this](void) {
+        const auto aiFamily = bInet6 ? AF_INET6 : AF_INET;
 
-    struct addrinfo hints = {
-        .ai_flags = AI_PASSIVE,
-        .ai_family = aiFamily,
-        .ai_socktype = SOCK_STREAM,
-        .ai_protocol = 0,
-        .ai_addrlen = 0,
-        .ai_addr = nullptr,
-        .ai_canonname = nullptr,
-        .ai_next = nullptr
-    };
+        struct addrinfo hints = {
+            .ai_flags = AI_PASSIVE,
+            .ai_family = aiFamily,
+            .ai_socktype = SOCK_STREAM,
+            .ai_protocol = 0,
+            .ai_addrlen = 0,
+            .ai_addr = nullptr,
+            .ai_canonname = nullptr,
+            .ai_next = nullptr
+        };
 
-    struct addrinfo *result = nullptr;
-    int nGaiRes = getaddrinfo(strHost.c_str(), std::to_string(nPort).c_str(), &hints, &result);
-    if(nGaiRes != 0)
-    {
-        ERROR("getaddrinfo() failed: %s", gai_strerror(nGaiRes));
-        return false;
-    }
-
-    int fdSocket = -1;
-    for(struct addrinfo *rp = result; rp != nullptr; rp = rp->ai_next)
-    {
-        if(rp->ai_socktype != SOCK_STREAM || rp->ai_family != aiFamily || !(rp->ai_flags & AI_PASSIVE))
-            continue;
-
-        fdSocket = socket(rp->ai_family, rp->ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, rp->ai_protocol);
-        if(fdSocket < 0)
+        struct addrinfo *result = nullptr;
+        int nGaiRes = getaddrinfo(strHost.c_str(), std::to_string(nPort).c_str(), &hints, &result);
+        if(nGaiRes != 0)
         {
-            SYSCALL_ERROR("socket()");
-            continue;
+            EMIT_EVENT(error, Error(std::string("getaddrinfo() failed: ") + gai_strerror(nGaiRes)));
+            return _detach();
         }
 
-        if(bind(fdSocket, rp->ai_addr, rp->ai_addrlen) < 0)
-            SYSCALL_ERROR("bind()");
-        else
-            break;
+        int nLsatError = 0;
+        int fdSocket = -1;
+        for(struct addrinfo *rp = result; rp != nullptr; rp = rp->ai_next)
+        {
+            if(rp->ai_socktype != SOCK_STREAM || rp->ai_family != aiFamily || !(rp->ai_flags & AI_PASSIVE))
+                continue;
 
-        close(fdSocket);
-    }
+            fdSocket = socket(rp->ai_family, rp->ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, rp->ai_protocol);
+            if(fdSocket < 0)
+            {
+                nLsatError = errno;
+                SYSCALL_ERROR("socket()");
+                continue;
+            }
 
-    freeaddrinfo(result);
+            if(bind(fdSocket, rp->ai_addr, rp->ai_addrlen) < 0)
+            {
+                nLsatError = errno;
+                SYSCALL_ERROR("bind()");
+            }
+            else
+                break;
 
-    if(fdSocket < 0)
-    {
-        ERROR("Could not bind to requested address");
-        return false;
-    }
+            close(fdSocket);
+        }
 
-    int nEnable = 1;
-    if(setsockopt(fdSocket, SOL_SOCKET, SO_REUSEADDR, &nEnable, sizeof(nEnable)) < 0)
-        SYSCALL_ERROR("setsockopt(SO_REUSEADDR)");
+        freeaddrinfo(result);
 
-    SetFD(fdSocket);
+        if(fdSocket < 0)
+        {
+            EMIT_EVENT(error, Error("Could not bind to requested address", nLsatError));
+            return _detach();
+        }
 
-    return _listen(eventLoop, backlog);
+        int nEnable = 1;
+        if(setsockopt(fdSocket, SOL_SOCKET, SO_REUSEADDR, &nEnable, sizeof(nEnable)) < 0)
+        {
+            // This is not a critical error so no need to notify anybody
+            SYSCALL_ERROR("setsockopt(SO_REUSEADDR)");
+        }
+
+        if(!_listen(fdSocket, backlog))
+        {
+            close(fdSocket);
+            return _detach();
+        }
+    });
 }
 
 std::shared_ptr<TCPListenerSocket> TCPListenerSocket::Create(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
 {
     auto sp = Event::CreateEvent<TCPListenerSocket>();
 
-    if(!sp->Open(eventLoop, strHost, nPort, bInet6, backlog))
-        return nullptr;
+    sp->_open(eventLoop, strHost, nPort, bInet6, backlog);
 
     return sp;
 }

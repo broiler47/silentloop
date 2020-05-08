@@ -21,7 +21,7 @@ class IOEvent : public Event
     protected:
         int GetFD(void) const override { return m_fd; }
         unsigned int GetIOEventMask(void) const override { return m_IOEventMask; }
-        void SetFD(int fd);
+        void SetFD(int fd, unsigned int mask = 0);
         void SetIOEventMask(unsigned int mask);
         void SetIOEventFlag(unsigned int mask) { SetIOEventMask(m_IOEventMask | mask); }
         void ClearIOEventFlag(unsigned int mask) { SetIOEventMask(m_IOEventMask & ~mask); }

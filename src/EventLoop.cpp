@@ -37,11 +37,8 @@ bool EventLoop::Add(const std::shared_ptr<Event> &spEvent)
 
     auto evInfo = std::make_unique<_eventInfo>(spEvent, this);
 
-    if(spEvent->GetFD() >= 0 && !m_spIOMux->Register(spEvent->GetFD(), spEvent->GetIOEventMask(), (EventHandle)evInfo.get()))
-    {
-        ERROR("Failed to register IO event in the mux");
+    if(!_updateIOFD((EventHandle)evInfo.get()))
         return false;
-    }
 
     CATCH_ALL(spEvent->_onAttach(this, (EventHandle)evInfo.get()));
 
@@ -55,7 +52,10 @@ bool EventLoop::Add(const std::shared_ptr<Event> &spEvent)
 void EventLoop::Run(void)
 {
     if(m_cbInit)
+    {
         m_cbInit(*this);
+        _processPendingRemovals();
+    }
 
     while(_tick());
 }
@@ -77,24 +77,21 @@ void EventLoop::_removeEvent(EventLoopBase::EventHandle hEvent)
 
     CATCH_ALL(pEventInfo->spEvent->_onDetached());
 
-    int fd = pEventInfo->spEvent->GetFD();
-    if(fd >= 0)
-        m_spIOMux->Unregister(fd);
+    if(pEventInfo->fdRegistered >= 0)
+        m_spIOMux->Unregister(pEventInfo->fdRegistered);
 }
 
-void EventLoop::_notifyIOEventMaskUpdate(EventLoopBase::EventHandle hEvent, int fd, unsigned int mask)
+void EventLoop::_notifyIOStateChange(EventLoopBase::EventHandle hEvent)
 {
     assert(hEvent);
-    assert(fd >= 0);
 
     if(!_isRegistered(hEvent))
     {
-        ERROR("Attempting to update IO event mask from unregistered event");
+        ERROR("Attempting to update IO state of unregistered event");
         return;
     }
 
-    if(!m_spIOMux->UpdateIOEventMask(fd, IOMuxBase::IOEvents(mask), hEvent))
-        ERROR("IO event mask not updated!");
+    _updateIOFD(hEvent);
 }
 
 void EventLoop::_setTimeout(EventLoopBase::EventHandle hEvent, EventLoopBase::TimeInterval timeout)
@@ -162,12 +159,14 @@ bool EventLoop::_tick(void)
     // Phase 2: Poll file descriptors for IO events
     now = std::chrono::steady_clock::now();
 
-    int nTimeout = -1;  // Wait for infinite time by default
+    int nTimeout = m_lstEvents.empty() ? 0 : -1;
     if(!m_qTimeouts.empty())
     {
         auto tSleep = std::chrono::duration_cast<std::chrono::milliseconds>(((_eventInfo *)m_qTimeouts.top())->tpNextTimeout - now).count();
         if(tSleep >= 0)
             nTimeout = tSleep > INT_MAX ? INT_MAX : int(tSleep);
+        else
+            nTimeout = 0;
     }
 
     std::vector<std::pair<EventLoopBase::EventHandle, unsigned int>> vecEvents;
@@ -205,6 +204,8 @@ bool EventLoop::_tick(void)
 
 void EventLoop::_processPendingRemovals(void)
 {
+    _drainNextTickQueue();
+
     for(auto hEvent : m_vecRMPending)
     {
         auto pEventInfo = (_eventInfo *)hEvent;
@@ -212,4 +213,39 @@ void EventLoop::_processPendingRemovals(void)
     }
 
     m_vecRMPending.clear();
+}
+
+bool EventLoop::_updateIOFD(EventLoopBase::EventHandle hEvent)
+{
+    auto pEventInfo = (_eventInfo *)hEvent;
+
+    int fdCurrent = pEventInfo->spEvent->GetFD();
+    unsigned int nMaskCurrent = pEventInfo->spEvent->GetIOEventMask();
+
+    if(pEventInfo->fdRegistered != fdCurrent)
+    {
+        if(pEventInfo->fdRegistered >= 0)
+        {
+            m_spIOMux->Unregister(pEventInfo->fdRegistered);
+
+            pEventInfo->fdRegistered = -1;
+            pEventInfo->nIOEventMask = 0;
+        }
+
+        if(fdCurrent >= 0 && !m_spIOMux->Register(fdCurrent, nMaskCurrent, hEvent))
+        {
+            ERROR("Failed to register IO event in the mux");
+            return false;
+        }
+
+        pEventInfo->fdRegistered = fdCurrent;
+        pEventInfo->nIOEventMask = nMaskCurrent;
+    }
+    else if(pEventInfo->nIOEventMask != nMaskCurrent && fdCurrent >= 0 && !m_spIOMux->UpdateIOEventMask(fdCurrent, nMaskCurrent, hEvent))
+    {
+        ERROR("Failed to update IO event mask");
+        return false;
+    }
+
+    return true;
 }

@@ -55,12 +55,21 @@ void Event::_cancelTimeout(void)
     m_pEL->_cancelTimeout(m_handle);
 }
 
-void Event::_notifyIOEventMaskUpdate(int fd, unsigned int mask)
+void Event::_notifyIOStateChange(void)
 {
     assert(m_pEL);
     assert(m_handle);
 
-    m_pEL->_notifyIOEventMaskUpdate(m_handle, fd, mask);
+    m_pEL->_notifyIOStateChange(m_handle);
+}
+
+void Event::_nextTick(const std::function<void(void)> &cb)
+{
+    assert(m_pEL);
+    assert(m_handle);
+    assert(cb);
+
+    m_pEL->_nextTick(cb);
 }
 
 void Event::_onCreated(const std::weak_ptr<Event> &self)

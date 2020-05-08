@@ -6,6 +6,7 @@
 #define EVENT_H_AAE9E5AD98E84D38BA94F2A4E34F9A4C
 
 #include "EventLoopBase.h"
+#include "Error.h"
 #include "IOMux/IOMuxBase.h"
 
 #include "Utils.h"
@@ -30,11 +31,13 @@ class Event
 {
     friend class EventLoop;
 
+    EXPORT_EVENT(error, const Error& err)
+
     public:
-        template <typename TEvent>
-        static std::shared_ptr<TEvent> CreateEvent(void)
+        template <typename TEvent, typename ...Args>
+        static std::shared_ptr<TEvent> CreateEvent(Args&&... args)
         {
-            auto sp = std::make_shared<TEvent>();
+            auto sp = std::make_shared<TEvent>(std::forward<Args>(args)...);
 
             auto spBase = std::static_pointer_cast<Event>(sp);
             spBase->_onCreated(spBase);
@@ -52,7 +55,6 @@ class Event
         virtual void OnTimeout(void) {}
         //virtual void OnInterval(void) {}
         //virtual void OnImmediate(void) {}
-        //virtual void OnAdvance(void) {}
         virtual void OnRead(void) {}
         virtual void OnWrite(void) {}
         virtual void OnClose(void) {}
@@ -71,7 +73,8 @@ class Event
         void _detach(void);
         void _setTimeout(EventLoopBase::TimeInterval timeout);
         void _cancelTimeout(void);
-        void _notifyIOEventMaskUpdate(int fd, unsigned int mask);
+        void _notifyIOStateChange(void);
+        void _nextTick(const std::function<void(void)>& cb);
 
     private:
         void _onCreated(const std::weak_ptr<Event>& self);
