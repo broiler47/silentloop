@@ -6,29 +6,30 @@
 
 #include <sstream>
 #include <cstring>
+#include <map>
 
-Error::Error(const std::string &err, int _errno) :
-    m_strWhat(err),
+Error::Error(const std::string &msg, ErrorCode err, int _errno) :
+    m_strMsg(msg),
+    m_errCode(err),
     m_nErrno(_errno)
 {
 }
 
-const char *Error::What(void) const
+const char *Error::_format(const char* errTypeName) const
 {
-    return m_strWhat.c_str();
-}
+    static const std::map<ErrorCode, const char*> mapErrorCodes = {
+        { ERR_UNKNOWN, "ERR_UNKNOWN" },
+        { ERR_SYSTEM_ERROR, "ERR_SYSTEM_ERROR" }
+    };
 
-int Error::GetErrno(void) const
-{
-    return m_nErrno;
-}
-
-const char *Error::Format(void) const
-{
     if(m_strFormatted.empty())
     {
+        auto itErrorCodeName = mapErrorCodes.find(m_errCode);
+        if(itErrorCodeName == mapErrorCodes.end())
+            itErrorCodeName = mapErrorCodes.find(ERR_UNKNOWN);  // ERR_UNKNOWN should always be present in the error code names map
+
         std::stringstream strm;
-        strm << "Error: " << m_strWhat;
+        strm << errTypeName << " [" << itErrorCodeName->second << "]: " << m_strMsg;
 
         if(m_nErrno)
             strm << "; errno: " << m_nErrno << " (" << strerror(m_nErrno) << ")";

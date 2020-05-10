@@ -18,7 +18,7 @@ bool ListenerSocket::_listen(int fd, int backlog)
 
     if(listen(fd, backlog) < 0)
     {
-        EMIT_EVENT(error, Error("Could not start listening socket", errno));
+        EMIT_EVENT(error, SystemError("Could not start listening socket", errno));
         return false;
     }
 
@@ -42,7 +42,7 @@ void ListenerSocket::OnRead(void)
             break;
         else
         {
-            EMIT_EVENT(error, Error("accept4() failed", errno));
+            EMIT_EVENT(error, SystemError("accept4() failed", errno));
             break;
         }
     }
@@ -111,7 +111,7 @@ void TCPListenerSocket::_open(EventLoopBase& eventLoop, const std::string& strHo
 
         if(fdSocket < 0)
         {
-            EMIT_EVENT(error, Error("Could not bind to requested address", nLsatError));
+            EMIT_EVENT(error, SystemError("Could not bind to requested address", nLsatError));
             return _detach();
         }
 
