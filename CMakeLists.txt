@@ -26,8 +26,6 @@ add_executable(silentloop
         src/IOMux/IOMux.h
         src/Log.h
         src/Log.cpp
-        src/Events/net/ListenerSocket.h
-        src/Events/net/ListenerSocket.cpp
         src/Events/core/IOEvent.h
         src/Events/core/IOEvent.cpp
         src/Events/core/Error.h
@@ -35,4 +33,6 @@ add_executable(silentloop
         src/Events/stream/Stream.h
         src/Events/stream/Stream.cpp
         src/Events/net/Socket.h
-        src/Events/net/Socket.cpp)
+        src/Events/net/Socket.cpp
+        src/Events/net/Server.h
+        src/Events/net/Server.cpp)

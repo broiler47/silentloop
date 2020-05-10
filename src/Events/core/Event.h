@@ -27,19 +27,9 @@
             CATCH_ALL(cb_on_##name(__VA_ARGS__));   \
     } while(0)                                      \
 
-#define EMIT_EVENT_ASYNC(name, ...)                     \
-    do                                                  \
-    {                                                   \
-        if(cb_on_##name)                                \
-            EmitEventAsync(cb_on_##name, __VA_ARGS__);  \
-    } while(0)                                          \
+#define EMIT_EVENT_ASYNC(name, ...) EmitEventAsync(cb_on_##name, __VA_ARGS__);
 
-#define EMIT_EVENT_ASYNC0(name)                         \
-    do                                                  \
-    {                                                   \
-        if(cb_on_##name)                                \
-            EmitEventAsync(cb_on_##name);               \
-    } while(0)                                          \
+#define EMIT_EVENT_ASYNC0(name) EmitEventAsync(cb_on_##name)
 
 class Event
 {
@@ -51,8 +41,9 @@ class Event
         template <typename TEventCb, typename ...Args>
         void EmitEventAsync(const TEventCb& cb, Args&&... args)
         {
-            _nextTick([cb, args...](void) {
-                CATCH_ALL(cb(args...));
+            _nextTick([&cb, args...](void) {
+                if(cb)
+                    CATCH_ALL(cb(args...));
             });
         }
 
@@ -90,7 +81,7 @@ class Event
 
     // For internal use of derivatives of Event object
     protected:
-        //EventLoopBase& _eventLoop(void);
+        EventLoopBase& _eventLoop(void);
         void _attach(EventLoopBase& eventLoop);
         bool _isAttached(void) const;
         void _detach(void);

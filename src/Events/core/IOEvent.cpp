@@ -52,7 +52,8 @@ void IOEvent::Close(void)
     if(_isAttached())
     {
         _nextTick([this](void) {
-            EMIT_EVENT(close);
+            if(m_fd >= 0)
+                EMIT_EVENT(close);
 
             _close();
         });

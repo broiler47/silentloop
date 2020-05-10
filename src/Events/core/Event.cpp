@@ -6,12 +6,12 @@
 
 #include <cassert>
 
-//EventLoopBase& Event::_eventLoop(void)
-//{
-//    assert(m_pEL);
-//
-//    return *m_pEL;
-//}
+EventLoopBase& Event::_eventLoop(void)
+{
+    assert(m_pEL);
+
+    return *m_pEL;
+}
 
 void Event::_attach(EventLoopBase &eventLoop)
 {

@@ -40,7 +40,7 @@ void Socket::_init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool st
     if(fd < 0)
     {
         EMIT_EVENT_ASYNC(error, TypeError("Invalid file descriptor"));
-        return;
+        return Close();
     }
 
     if(startReading)
@@ -75,6 +75,7 @@ void Socket::OnError(void)
     Event::OnError();
 
     EMIT_EVENT(error, Error("Socket error"));
+    Close();
 }
 
 void Socket::_write(void)
