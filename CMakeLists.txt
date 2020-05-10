@@ -11,13 +11,6 @@ add_definitions(-D_GNU_SOURCE)
 
 add_executable(silentloop
         main.cpp
-        src/EventEmitter.h
-        src/EventEmitter.cpp
-        src/UID/FastUID.h
-        src/UID/FastUID.cpp
-        src/UID/UID.h
-        src/UID/UIDBase.h
-        src/UID/UIDBase.cpp
         src/EventLoop.h
         src/EventLoop.cpp
         src/Events/core/Event.h
