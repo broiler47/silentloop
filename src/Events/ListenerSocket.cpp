@@ -97,14 +97,12 @@ void TCPListenerSocket::_open(EventLoopBase& eventLoop, const std::string& strHo
             }
 
             if(bind(fdSocket, rp->ai_addr, rp->ai_addrlen) < 0)
-            {
                 nLsatError = errno;
-                SYSCALL_ERROR("bind()");
-            }
             else
                 break;
 
             close(fdSocket);
+            fdSocket = -1;
         }
 
         freeaddrinfo(result);
