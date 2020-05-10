@@ -52,10 +52,9 @@ bool EventLoop::Add(const std::shared_ptr<Event> &spEvent)
 void EventLoop::Run(void)
 {
     if(m_cbInit)
-    {
         m_cbInit(*this);
-        _processPendingRemovals();
-    }
+
+    _processPendingRemovals();
 
     while(_tick());
 }
