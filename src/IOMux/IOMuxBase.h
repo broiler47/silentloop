@@ -19,7 +19,7 @@ class IOMuxBase
         {
             IOEV_READ   = 1,
             IOEV_WRITE  = 2,
-            IOEV_CLOSE  = 4,    // Always polled
+            IOEV_HUP    = 4,    // Always polled
             IOEV_ERROR  = 8     // Always polled
         };
 

@@ -8,6 +8,7 @@
 #include "Events/core/IOEvent.h"
 
 #include <cassert>
+#include <map>
 
 #include <unistd.h>
 
@@ -70,7 +71,7 @@ bool IOMux_epoll::Poll(int timeout, std::vector<std::pair<EventLoopBase::EventHa
     {
         unsigned int eventMask = (m_vecReadyEvents[i].events & EPOLLERR) ? (unsigned int)IOEV_ERROR : 0;
         if(m_vecReadyEvents[i].events & (EPOLLRDHUP | EPOLLHUP))
-            eventMask |= IOEV_CLOSE;
+            eventMask |= IOEV_HUP;
         if(m_vecReadyEvents[i].events & (EPOLLIN | EPOLLPRI))
             eventMask |= IOEV_READ;
         if(m_vecReadyEvents[i].events & EPOLLOUT)
@@ -103,15 +104,17 @@ bool IOMux_epoll::_epollCtl(int op, int fd, unsigned int mask, EventLoopBase::Ev
         }
     };
 
+    static std::map<int, const char*> mapEpollCtlOps = {
+        { EPOLL_CTL_ADD, "EPOLL_CTL_ADD" },
+        { EPOLL_CTL_MOD, "EPOLL_CTL_MOD" },
+        { EPOLL_CTL_DEL, "EPOLL_CTL_DEL" }
+    };
+
+    //DEBUG("epoll_ctl(%s, %d)", mapEpollCtlOps[op], fd);
+
     if(epoll_ctl(m_fdEpoll, op, fd, &ev) < 0)
     {
-        switch(op)
-        {
-            case EPOLL_CTL_ADD: SYSCALL_ERROR("epoll_ctl(EPOLL_CTL_ADD)"); break;
-            case EPOLL_CTL_MOD: SYSCALL_ERROR("epoll_ctl(EPOLL_CTL_MOD)"); break;
-            case EPOLL_CTL_DEL: SYSCALL_ERROR("epoll_ctl(EPOLL_CTL_DEL)"); break;
-        }
-
+        SYSCALL_ERROR((std::string("epoll_ctl(") + mapEpollCtlOps[op] + ")").c_str());
         return false;
     }
 

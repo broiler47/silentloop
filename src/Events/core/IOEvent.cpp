@@ -54,9 +54,10 @@ void IOEvent::Close(void)
         _nextTick([this](void) {
             EMIT_EVENT(close);
 
-            _detach();
             _close();
         });
+
+        _detach();
     }
     else
         _close();

@@ -27,11 +27,34 @@
             CATCH_ALL(cb_on_##name(__VA_ARGS__));   \
     } while(0)                                      \
 
+#define EMIT_EVENT_ASYNC(name, ...)                     \
+    do                                                  \
+    {                                                   \
+        if(cb_on_##name)                                \
+            EmitEventAsync(cb_on_##name, __VA_ARGS__);  \
+    } while(0)                                          \
+
+#define EMIT_EVENT_ASYNC0(name)                         \
+    do                                                  \
+    {                                                   \
+        if(cb_on_##name)                                \
+            EmitEventAsync(cb_on_##name);               \
+    } while(0)                                          \
+
 class Event
 {
     friend class EventLoop;
 
     EXPORT_EVENT(error, const Error& err)
+
+    public:
+        template <typename TEventCb, typename ...Args>
+        void EmitEventAsync(const TEventCb& cb, Args&&... args)
+        {
+            _nextTick([cb, args...](void) {
+                CATCH_ALL(cb(args...));
+            });
+        }
 
     public:
         template <typename TEvent, typename ...Args>
@@ -57,7 +80,7 @@ class Event
         //virtual void OnImmediate(void) {}
         virtual void OnRead(void) {}
         virtual void OnWrite(void) {}
-        virtual void OnClose(void) {}
+        virtual void OnHUP(void) {}
         virtual void OnError(void) {}
 
     // For internal use of derivatives of Event object or EventLoop

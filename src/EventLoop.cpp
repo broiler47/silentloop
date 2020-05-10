@@ -179,19 +179,17 @@ bool EventLoop::_tick(void)
         auto pEventInfo = (_eventInfo *)ev.first;
         unsigned int eventMask = ev.second;
 
-        if(eventMask & IOMuxBase::IOEV_ERROR)
+        if(eventMask & IOMuxBase::IOEV_ERROR && !(pEventInfo->flags & EVF_DETACHED))
             CATCH_ALL(pEventInfo->spEvent->OnError());
 
-        if(eventMask & IOMuxBase::IOEV_READ)
+        if(eventMask & IOMuxBase::IOEV_HUP && !(pEventInfo->flags & EVF_DETACHED))
+            CATCH_ALL(pEventInfo->spEvent->OnHUP());
+
+        if(eventMask & IOMuxBase::IOEV_READ && !(pEventInfo->flags & EVF_DETACHED))
             CATCH_ALL(pEventInfo->spEvent->OnRead());
 
-        if(eventMask & IOMuxBase::IOEV_WRITE)
+        if(eventMask & IOMuxBase::IOEV_WRITE && !(pEventInfo->flags & EVF_DETACHED))
             CATCH_ALL(pEventInfo->spEvent->OnWrite());
-
-        // Report IOEV_CLOSE after IOEV_READ and IOEV_WRITE because there may still be
-        // some data ready for read
-        if(eventMask & IOMuxBase::IOEV_CLOSE)
-            CATCH_ALL(pEventInfo->spEvent->OnClose());
     }
 
     _processPendingRemovals();

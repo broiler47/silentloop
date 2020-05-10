@@ -34,8 +34,6 @@ const char *Error::_format(const char* errTypeName) const
         if(m_nErrno)
             strm << "; errno: " << m_nErrno << " (" << strerror(m_nErrno) << ")";
 
-        strm << "\n";
-
         m_strFormatted = strm.str();
     }
 
