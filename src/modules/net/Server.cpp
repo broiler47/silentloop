@@ -12,14 +12,14 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-std::shared_ptr<Server> Server::Create(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+std::shared_ptr<net::Server> net::Server::Create(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
 {
     auto sp = Event::CreateEvent<Server>();
     sp->_open(eventLoop, strHost, nPort, bInet6, backlog);
     return sp;
 }
 
-void Server::_open(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+void net::Server::_open(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
 {
     _attach(eventLoop);
 
@@ -89,7 +89,7 @@ void Server::_open(EventLoopBase &eventLoop, const std::string &strHost, uint16_
     }
 }
 
-bool Server::_listen(int fd, int backlog)
+bool net::Server::_listen(int fd, int backlog)
 {
     assert(fd >= 0);
 
@@ -106,14 +106,14 @@ bool Server::_listen(int fd, int backlog)
     return true;
 }
 
-void Server::_newClient(int fd)
+void net::Server::_newClient(int fd)
 {
     auto spSocket = Socket::Create(_eventLoop(), fd, false, true);
 
     EMIT_EVENT(connection, spSocket);
 }
 
-void Server::OnRead(void)
+void net::Server::OnRead(void)
 {
     Event::OnRead();
 
@@ -132,7 +132,7 @@ void Server::OnRead(void)
     }
 }
 
-void Server::OnError(void)
+void net::Server::OnError(void)
 {
     Event::OnError();
 

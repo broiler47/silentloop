@@ -6,6 +6,7 @@
 #define IOEVENT_H_C988CB20B45A48A0881D10633315187D
 
 #include "Event.h"
+#include "io_mux/IOMuxBase.h"
 
 class IOEvent : public Event
 {

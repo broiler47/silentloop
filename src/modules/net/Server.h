@@ -7,6 +7,9 @@
 
 #include "Socket.h"
 
+namespace net
+{
+
 class Server : public IOEvent
 {
     public:
@@ -24,8 +27,10 @@ class Server : public IOEvent
         void OnRead(void) override;
         void OnError(void) override;
 
-        EXPORT_EVENT(listening)
-        EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
+    EXPORT_EVENT(listening)
+    EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
 };
+
+}   // namespace net
 
 #endif //SERVER_H_94B91C01AE0845958D9EDD1DF27FEC0C

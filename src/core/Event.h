@@ -7,8 +7,6 @@
 
 #include "EventLoopBase.h"
 #include "Error.h"
-#include "IOMux/IOMuxBase.h"
-
 #include "Utils.h"
 
 #include <functional>

@@ -5,7 +5,10 @@
 #ifndef STREAM_H_16C558E69E3C4CB0BF9AAE0E97DE86EB
 #define STREAM_H_16C558E69E3C4CB0BF9AAE0E97DE86EB
 
-#include "Events/core/IOEvent.h"
+#include "EventLoop.h"
+
+namespace stream
+{
 
 class Stream : public IOEvent
 {
@@ -94,5 +97,7 @@ class ReadableStream : public virtual Stream
 class DuplexStream : public ReadableStream, public WritableStream
 {
 };
+
+}   // namespace stream
 
 #endif //STREAM_H_16C558E69E3C4CB0BF9AAE0E97DE86EB

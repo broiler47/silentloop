@@ -5,10 +5,7 @@
 #ifndef TINEOUT_H_CCE767453DE64C5C8E8E6E324C0DC2A7
 #define TINEOUT_H_CCE767453DE64C5C8E8E6E324C0DC2A7
 
-#include "Events/core/Event.h"
-#include "../EventLoopBase.h"
-
-#include <functional>
+#include "Event.h"
 
 class TimeoutEvent : public Event
 {

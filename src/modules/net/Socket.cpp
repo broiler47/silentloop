@@ -4,21 +4,19 @@
 
 #include "Socket.h"
 
-#include <cassert>
-
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-std::shared_ptr<Socket> Socket::Create(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
+std::shared_ptr<net::Socket> net::Socket::Create(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
 {
     auto sp = Event::CreateEvent<Socket>();
     sp->_init(eventLoop, fd, allowHalfOpen, startReading);
     return sp;
 }
 
-void Socket::setNoDelay(bool noDelay)
+void net::Socket::setNoDelay(bool noDelay)
 {
     if(GetFD() < 0)
     {
@@ -31,7 +29,7 @@ void Socket::setNoDelay(bool noDelay)
         EMIT_EVENT(error, SystemError("setsockopt(TCP_NODELAY)", errno));
 }
 
-void Socket::_init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
+void net::Socket::_init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
 {
     m_bAllowHalfOpen = allowHalfOpen;
 
@@ -49,28 +47,28 @@ void Socket::_init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool st
     SetFD(fd, m_bFlowing ? (unsigned int)IOEvents::IOEV_READ : 0);
 }
 
-void Socket::OnRead(void)
+void net::Socket::OnRead(void)
 {
     Event::OnRead();
 
     _doRead();
 }
 
-void Socket::OnWrite(void)
+void net::Socket::OnWrite(void)
 {
     Event::OnWrite();
 
     _doWrite();
 }
 
-void Socket::OnHUP(void)
+void net::Socket::OnHUP(void)
 {
     Event::OnHUP();
 
     _doRead();
 }
 
-void Socket::OnError(void)
+void net::Socket::OnError(void)
 {
     Event::OnError();
 
@@ -78,18 +76,18 @@ void Socket::OnError(void)
     Close();
 }
 
-void Socket::_write(void)
+void net::Socket::_write(void)
 {
     _doWrite();
 }
 
-void Socket::_read(void)
+void net::Socket::_read(void)
 {
     SetIOEventFlag(IOEvents::IOEV_READ);
     _doRead();
 }
 
-void Socket::_doWrite(void)
+void net::Socket::_doWrite(void)
 {
     for(;;)
     {
@@ -126,7 +124,7 @@ void Socket::_doWrite(void)
     }
 }
 
-void Socket::_doRead(void)
+void net::Socket::_doRead(void)
 {
     for(;!m_bHUP;)
     {

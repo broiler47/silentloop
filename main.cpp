@@ -1,8 +1,8 @@
 #include "Log.h"
+
 #include "EventLoop.h"
 
-#include "Events/Tineout.h"
-#include "Events/net/Server.h"
+#include "modules/net/Server.h"
 
 static void _ev_main(EventLoopBase& eventLoop)
 {
@@ -12,7 +12,7 @@ static void _ev_main(EventLoopBase& eventLoop)
 //        INFO("Hello, World!");
 //    }, 3000);
 
-    auto spServer = Server::Create(eventLoop, "localhost", 7890);
+    auto spServer = net::Server::Create(eventLoop, "localhost", 7890);
 
     spServer->on_error([](const Error& err) {
         ERROR("Server error: %s", err.Format());
@@ -32,7 +32,7 @@ static void _ev_main(EventLoopBase& eventLoop)
     // a circular dependency and as a result a potential event object
     // leaks. One possible workaround is to capture raw event object pointer.
     auto pServer = spServer.get();
-    spServer->on_connection([pServer](const std::shared_ptr<Socket>& spSocket) {
+    spServer->on_connection([pServer](const std::shared_ptr<net::Socket>& spSocket) {
         DEBUG("Incoming connection");
 
         //pListener->Close();

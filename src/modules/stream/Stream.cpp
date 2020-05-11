@@ -8,17 +8,17 @@
 
 #include <cassert>
 
-bool WritableStream::write(const std::string &strData)
+bool stream::WritableStream::write(const std::string &strData)
 {
     return write(strData.data(), strData.size());
 }
 
-bool WritableStream::write(const std::vector<uint8_t> &vecData)
+bool stream::WritableStream::write(const std::vector<uint8_t> &vecData)
 {
     return write(vecData.data(), vecData.size());
 }
 
-bool WritableStream::write(const void *buf, size_t size)
+bool stream::WritableStream::write(const void *buf, size_t size)
 {
     assert(buf);
 
@@ -46,28 +46,28 @@ bool WritableStream::write(const void *buf, size_t size)
     return res;
 }
 
-void WritableStream::end(void)
+void stream::WritableStream::end(void)
 {
     m_bFinish = true;
 }
 
-void WritableStream::end(const std::string &strData)
+void stream::WritableStream::end(const std::string &strData)
 {
     end(strData.data(), strData.size());
 }
 
-void WritableStream::end(const std::vector<uint8_t> &vecData)
+void stream::WritableStream::end(const std::vector<uint8_t> &vecData)
 {
     end(vecData.data(), vecData.size());
 }
 
-void WritableStream::end(const void *buf, size_t size)
+void stream::WritableStream::end(const void *buf, size_t size)
 {
     write(buf, size);
     end();
 }
 
-bool WritableStream::_onDrained(void)
+bool stream::WritableStream::_onDrained(void)
 {
     if(m_bFinish)
         EMIT_EVENT_ASYNC0(finish);
@@ -77,12 +77,12 @@ bool WritableStream::_onDrained(void)
     return m_bFinish;
 }
 
-void ReadableStream::pause(void)
+void stream::ReadableStream::pause(void)
 {
     m_bFlowing = false;
 }
 
-void ReadableStream::resume(void)
+void stream::ReadableStream::resume(void)
 {
     if(!m_bFlowing)
     {
@@ -95,7 +95,7 @@ void ReadableStream::resume(void)
     }
 }
 
-bool ReadableStream::_push(const void *buf, size_t size)
+bool stream::ReadableStream::_push(const void *buf, size_t size)
 {
     if(m_bEnded)
     {
@@ -119,7 +119,7 @@ bool ReadableStream::_push(const void *buf, size_t size)
     return m_bFlowing;
 }
 
-void ReadableStream::_emitData(void)
+void stream::ReadableStream::_emitData(void)
 {
     if(m_bFlowing && !m_rdBuffer.empty())
     {

@@ -5,11 +5,14 @@
 #ifndef SOCKET_H_21546E3F7E4643558959A187FA231DFB
 #define SOCKET_H_21546E3F7E4643558959A187FA231DFB
 
-#include "Events/stream/Stream.h"
+#include "modules/stream/Stream.h"
+
+namespace net
+{
 
 #define SOCKET_READ_BUF_SIZE 65536
 
-class Socket : public DuplexStream
+class Socket : public stream::DuplexStream
 {
     //EXPORT_EVENT(connect)
     //EXPORT_EVENT(lookup)
@@ -44,5 +47,7 @@ class Socket : public DuplexStream
         bool m_bHUP = false;
         bool m_bWRShutdown = false;
 };
+
+}   // namespace net
 
 #endif //SOCKET_H_21546E3F7E4643558959A187FA231DFB
