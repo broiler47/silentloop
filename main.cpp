@@ -4,7 +4,7 @@
 
 #include "modules/net/Server.h"
 
-static void _ev_main(EventLoopBase& eventLoop)
+static void _ev_main(void)
 {
     INFO("<=== START ===>");
 
@@ -12,7 +12,7 @@ static void _ev_main(EventLoopBase& eventLoop)
 //        INFO("Hello, World!");
 //    }, 3000);
 
-    auto spServer = net::Server::Create(eventLoop, "localhost", 7890);
+    auto spServer = net::Server::Create("localhost", 7890);
 
     spServer->on_error([](const Error& err) {
         ERROR("Server error: %s", err.Format());
@@ -75,9 +75,7 @@ int main(void)
 {
     Log::Instance().AddDestination(stdout);
 
-    EventLoop eventLoop(&_ev_main);
-
-    eventLoop.Run();
+    RunThreadEventLoop(&_ev_main);
 
     Log::Destroy();
 

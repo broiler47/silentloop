@@ -9,10 +9,10 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-std::shared_ptr<net::Socket> net::Socket::Create(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
+std::shared_ptr<net::Socket> net::Socket::Create(int fd, bool allowHalfOpen, bool startReading)
 {
     auto sp = Event::CreateEvent<Socket>();
-    sp->_init(eventLoop, fd, allowHalfOpen, startReading);
+    sp->_init(fd, allowHalfOpen, startReading);
     return sp;
 }
 
@@ -29,11 +29,11 @@ void net::Socket::setNoDelay(bool noDelay)
         EMIT_EVENT(error, SystemError("setsockopt(TCP_NODELAY)", errno));
 }
 
-void net::Socket::_init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading)
+void net::Socket::_init(int fd, bool allowHalfOpen, bool startReading)
 {
     m_bAllowHalfOpen = allowHalfOpen;
 
-    _attach(eventLoop);
+    _attach();
 
     if(fd < 0)
     {

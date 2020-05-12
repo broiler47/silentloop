@@ -6,14 +6,9 @@
 
 #include <cassert>
 
-EventLoopBase& Event::_eventLoop(void)
-{
-    assert(m_pEL);
+extern thread_local std::shared_ptr<EventLoopBase> _tls_event_loop;
 
-    return *m_pEL;
-}
-
-void Event::_attach(EventLoopBase &eventLoop)
+void Event::_attach(void)
 {
     assert(!m_pEL);
     assert(!m_handle);
@@ -23,7 +18,10 @@ void Event::_attach(EventLoopBase &eventLoop)
     if(!spSelf)
         throw std::runtime_error("Attempting ot attach unreferenced event. Please make sure that event objects are always created with Event::CreateEvent()!");
 
-    eventLoop.Add(spSelf);
+    if(!_tls_event_loop)
+        throw std::runtime_error("Unable to attach event from thread with no local event loop");
+
+    _tls_event_loop->Add(spSelf);
 }
 
 bool Event::_isAttached(void) const

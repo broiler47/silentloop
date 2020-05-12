@@ -20,13 +20,13 @@ class Socket : public stream::DuplexStream
     //EXPORT_EVENT(timeout)
 
     public:
-        static std::shared_ptr<Socket> Create(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading);
+        static std::shared_ptr<Socket> Create(int fd, bool allowHalfOpen, bool startReading);
 
     public:
         void setNoDelay(bool noDelay = true);
 
     private:
-        void _init(EventLoopBase& eventLoop, int fd, bool allowHalfOpen, bool startReading);
+        void _init(int fd, bool allowHalfOpen, bool startReading);
 
     private:
         void OnRead(void) override;

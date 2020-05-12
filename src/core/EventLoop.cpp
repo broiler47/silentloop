@@ -12,9 +12,8 @@
 #include <chrono>
 #include <climits>
 
-EventLoop::EventLoop(std::function<void(EventLoopBase&)>  cbInit,
-                     std::shared_ptr<IOMuxBase> spFDMux) :
-    m_cbInit(std::move(cbInit)),
+EventLoop::EventLoop(std::function<void(void)> cbEvMain, std::shared_ptr<IOMuxBase> spFDMux) :
+    m_cbEvMain(std::move(cbEvMain)),
     m_spIOMux(std::move(spFDMux))
 {
     assert(m_spIOMux);
@@ -51,8 +50,8 @@ bool EventLoop::Add(const std::shared_ptr<Event> &spEvent)
 
 void EventLoop::Run(void)
 {
-    if(m_cbInit)
-        m_cbInit(*this);
+    if(m_cbEvMain)
+        CATCH_ALL(m_cbEvMain());
 
     _processPendingRemovals();
 

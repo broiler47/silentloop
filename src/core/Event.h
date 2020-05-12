@@ -79,8 +79,7 @@ class Event
 
     // For internal use of derivatives of Event object
     protected:
-        EventLoopBase& _eventLoop(void);
-        void _attach(EventLoopBase& eventLoop);
+        void _attach(void);
         bool _isAttached(void) const;
         void _detach(void);
         void _setTimeout(EventLoopBase::TimeInterval timeout);

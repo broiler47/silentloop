@@ -13,13 +13,13 @@ namespace net
 class Server : public IOEvent
 {
     public:
-        static std::shared_ptr<Server> Create(EventLoopBase& eventLoop, const std::string& strHost, uint16_t nPort, bool bInet6 = false, int backlog = nDefaultBacklogValue);
+        static std::shared_ptr<Server> Create(const std::string& strHost, uint16_t nPort, bool bInet6 = false, int backlog = nDefaultBacklogValue);
 
     public:
         static const int nDefaultBacklogValue = 32;
 
     private:
-        void _open(EventLoopBase& eventLoop, const std::string& strHost, uint16_t nPort, bool bInet6, int backlog);
+        void _open(const std::string& strHost, uint16_t nPort, bool bInet6, int backlog);
         bool _listen(int fd, int backlog);
         void _newClient(int fd);
 

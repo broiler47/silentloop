@@ -12,16 +12,16 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-std::shared_ptr<net::Server> net::Server::Create(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+std::shared_ptr<net::Server> net::Server::Create(const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
 {
     auto sp = Event::CreateEvent<Server>();
-    sp->_open(eventLoop, strHost, nPort, bInet6, backlog);
+    sp->_open(strHost, nPort, bInet6, backlog);
     return sp;
 }
 
-void net::Server::_open(EventLoopBase &eventLoop, const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+void net::Server::_open(const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
 {
-    _attach(eventLoop);
+    _attach();
 
     const auto aiFamily = bInet6 ? AF_INET6 : AF_INET;
 
@@ -108,7 +108,7 @@ bool net::Server::_listen(int fd, int backlog)
 
 void net::Server::_newClient(int fd)
 {
-    auto spSocket = Socket::Create(_eventLoop(), fd, false, true);
+    auto spSocket = Socket::Create(fd, false, true);
 
     EMIT_EVENT(connection, spSocket);
 }

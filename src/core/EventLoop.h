@@ -18,8 +18,7 @@
 class EventLoop : public EventLoopBase
 {
     public:
-        explicit EventLoop(std::function<void(EventLoopBase&)>  cbInit = nullptr,
-                           std::shared_ptr<IOMuxBase> spFDMux = IOMux_epoll::Create());
+        EventLoop(std::function<void(void)> cbEvMain, std::shared_ptr<IOMuxBase> spFDMux);
         ~EventLoop(void) override;
 
     public:
@@ -79,7 +78,7 @@ class EventLoop : public EventLoopBase
         };
 
     private:
-        std::function<void(EventLoopBase&)> m_cbInit;
+        std::function<void(void)> m_cbEvMain;
         std::list<std::unique_ptr<_eventInfo>> m_lstEvents;
         std::vector<EventHandle> m_vecRMPending;
         ELTimerQueueComparator::TimerQueue m_qTimeouts;
