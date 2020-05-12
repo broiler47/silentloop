@@ -30,6 +30,7 @@ add_executable(silentloop
         src/core/IOEvent.cpp
         src/core/Error.h
         src/core/Error.cpp
+        src/core/EventLoopFactory.cpp
         src/EventLoop.h
         src/modules/stream/Stream.h
         src/modules/stream/Stream.cpp
