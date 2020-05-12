@@ -11,6 +11,7 @@ enum ErrorCode
 {
     ERR_UNKNOWN = 0,
     ERR_SYSTEM_ERROR,
+    ERR_SERVER_ALREADY_LISTEN,
 
     _ERR_ERROR_CODE_MAX
 };

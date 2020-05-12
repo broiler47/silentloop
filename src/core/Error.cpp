@@ -19,7 +19,8 @@ const char *Error::_format(const char* errTypeName) const
 {
     static const std::map<ErrorCode, const char*> mapErrorCodes = {
         { ERR_UNKNOWN, "ERR_UNKNOWN" },
-        { ERR_SYSTEM_ERROR, "ERR_SYSTEM_ERROR" }
+        { ERR_SYSTEM_ERROR, "ERR_SYSTEM_ERROR" },
+        { ERR_SERVER_ALREADY_LISTEN, "ERR_SERVER_ALREADY_LISTEN" }
     };
 
     if(m_strFormatted.empty())

@@ -12,7 +12,8 @@ static void _ev_main(void)
 //        INFO("Hello, World!");
 //    }, 3000);
 
-    auto spServer = net::Server::Create("localhost", 7890);
+    auto spServer = net::CreateServer();
+    spServer->Listen(7890);
 
     spServer->on_error([](const Error& err) {
         ERROR("Server error: %s", err.Format());

@@ -13,23 +13,32 @@ namespace net
 class Server : public IOEvent
 {
     public:
-        static std::shared_ptr<Server> Create(const std::string& strHost, uint16_t nPort, bool bInet6 = false, int backlog = nDefaultBacklogValue);
+        Server(bool allowHalfOpen, bool pauseOnConnect);
 
     public:
         static const int nDefaultBacklogValue = 32;
 
+    EXPORT_EVENT(listening)
+    EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
+
+    public:
+        void Listen(uint16_t nPort, const std::string &strHost = "0.0.0.0", int backlog = nDefaultBacklogValue, bool bInet6 = false);
+        //void setTimeout(unsigned int ms);
+
     private:
-        void _open(const std::string& strHost, uint16_t nPort, bool bInet6, int backlog);
+        void _openTCPSocket(uint16_t nPort, const std::string& strHost, int backlog, bool bInet6);
         bool _listen(int fd, int backlog);
-        void _newClient(int fd);
 
     private:
         void OnRead(void) override;
         void OnError(void) override;
 
-    EXPORT_EVENT(listening)
-    EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
+    private:
+        bool m_bAllowHalfOpen;
+        bool m_bPauseOnConnect;
 };
+
+std::shared_ptr<Server> CreateServer(bool allowHalfOpen = false, bool pauseOnConnect = false);
 
 }   // namespace net
 

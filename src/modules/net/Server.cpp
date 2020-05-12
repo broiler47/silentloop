@@ -12,14 +12,13 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-std::shared_ptr<net::Server> net::Server::Create(const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+net::Server::Server(bool allowHalfOpen, bool pauseOnConnect) :
+    m_bAllowHalfOpen(allowHalfOpen),
+    m_bPauseOnConnect(pauseOnConnect)
 {
-    auto sp = Event::CreateEvent<Server>();
-    sp->_open(strHost, nPort, bInet6, backlog);
-    return sp;
 }
 
-void net::Server::_open(const std::string &strHost, uint16_t nPort, bool bInet6, int backlog)
+void net::Server::_openTCPSocket(uint16_t nPort, const std::string& strHost, int backlog, bool bInet6)
 {
     _attach();
 
@@ -106,13 +105,6 @@ bool net::Server::_listen(int fd, int backlog)
     return true;
 }
 
-void net::Server::_newClient(int fd)
-{
-    auto spSocket = Socket::Create(fd, false, true);
-
-    EMIT_EVENT(connection, spSocket);
-}
-
 void net::Server::OnRead(void)
 {
     Event::OnRead();
@@ -121,7 +113,10 @@ void net::Server::OnRead(void)
     {
         int fdClient = int(TEMP_FAILURE_RETRY(accept4(GetFD(), nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC)));
         if(fdClient >= 0)
-            _newClient(fdClient);
+        {
+            auto spSocket = Socket::Create(fdClient, m_bAllowHalfOpen, !m_bPauseOnConnect);
+            EMIT_EVENT(connection, spSocket);
+        }
         else if(IS_WOULDBLOCK(errno))
             break;
         else
@@ -138,4 +133,20 @@ void net::Server::OnError(void)
 
     EMIT_EVENT(error, Error("Socket error"));
     Close();
+}
+
+void net::Server::Listen(uint16_t nPort, const std::string &strHost, int backlog, bool bInet6)
+{
+    if(GetFD() >= 0)
+    {
+        EMIT_EVENT_ASYNC(error, Error("Already listening", ERR_SERVER_ALREADY_LISTEN));
+        return;
+    }
+
+    _openTCPSocket(nPort, strHost, backlog, bInet6);
+}
+
+std::shared_ptr<net::Server> net::CreateServer(bool allowHalfOpen, bool pauseOnConnect)
+{
+    return Event::CreateEvent<Server>(allowHalfOpen, pauseOnConnect);
 }
