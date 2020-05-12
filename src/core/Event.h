@@ -8,42 +8,13 @@
 #include "EventLoopBase.h"
 #include "Error.h"
 #include "Utils.h"
+#include "EventEmitter.h"
 
-#include <functional>
-#include <string>
-
-#define EXPORT_EVENT(name, ...)                                                             \
-    public:                                                                                 \
-        void on_##name(const std::function<void(__VA_ARGS__)>& cb) { cb_on_##name = cb; }   \
-    protected:                                                                              \
-        std::function<void(__VA_ARGS__)> cb_on_##name;                                      \
-
-#define EMIT_EVENT(name, ...)                       \
-    do                                              \
-    {                                               \
-        if(cb_on_##name)                            \
-            CATCH_ALL(cb_on_##name(__VA_ARGS__));   \
-    } while(0)                                      \
-
-#define EMIT_EVENT_ASYNC(name, ...) EmitEventAsync(cb_on_##name, __VA_ARGS__);
-
-#define EMIT_EVENT_ASYNC0(name) EmitEventAsync(cb_on_##name)
-
-class Event
+class Event : public EventEmitter
 {
     friend class EventLoop;
 
     EXPORT_EVENT(error, const Error& err)
-
-    public:
-        template <typename TEventCb, typename ...Args>
-        void EmitEventAsync(const TEventCb& cb, Args&&... args)
-        {
-            _nextTick([&cb, args...](void) {
-                if(cb)
-                    CATCH_ALL(cb(args...));
-            });
-        }
 
     public:
         template <typename TEvent, typename ...Args>
@@ -85,7 +56,7 @@ class Event
         void _setTimeout(EventLoopBase::TimeInterval timeout);
         void _cancelTimeout(void);
         void _notifyIOStateChange(void);
-        void _nextTick(const std::function<void(void)>& cb);
+        void _nextTick(const std::function<void(void)>& cb) override;
 
     private:
         void _onCreated(const std::weak_ptr<Event>& self);
