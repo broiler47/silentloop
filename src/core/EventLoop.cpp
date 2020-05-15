@@ -68,6 +68,8 @@ void EventLoop::_removeEvent(EventLoopBase::EventHandle hEvent)
         return;
     }
 
+    _removeFromTimeoutQueue(hEvent);
+
     m_vecRMPending.push_back(hEvent);
 
     auto *pEventInfo = (_eventInfo *)hEvent;
@@ -118,11 +120,23 @@ void EventLoop::_setTimeout(EventLoopBase::EventHandle hEvent, EventLoopBase::Ti
 
 void EventLoop::_cancelTimeout(EventLoopBase::EventHandle hEvent)
 {
-    UNUSED_ARG(hEvent);
+    assert(hEvent);
 
-    // TODO: Implement
+    if(!_isRegistered(hEvent))
+    {
+        ERROR("Attempting to cancel timeout from unregistered event");
+        return;
+    }
 
-    assert(false);
+    auto pEventInfo = (_eventInfo *)hEvent;
+
+    if(!(pEventInfo->flags & EVF_TIMEOUT_SET))
+    {
+        ERROR("Event timeout was not set");
+        return;
+    }
+
+    _removeFromTimeoutQueue(hEvent);
 }
 
 bool EventLoop::_isRegistered(EventLoopBase::EventHandle hEvent)
@@ -244,4 +258,16 @@ bool EventLoop::_updateIOFD(EventLoopBase::EventHandle hEvent)
     }
 
     return true;
+}
+
+void EventLoop::_removeFromTimeoutQueue(EventLoopBase::EventHandle hEvent)
+{
+    auto pEventInfo = (_eventInfo *)hEvent;
+
+    if(!(pEventInfo->flags & EVF_TIMEOUT_SET))
+        return;
+
+    pEventInfo->flags &= ~EVF_TIMEOUT_SET;
+
+    m_qTimeouts.Remove(hEvent);
 }

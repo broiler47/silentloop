@@ -38,6 +38,7 @@ class EventLoop : public EventLoopBase
         bool _isRegistered(EventHandle hEvent);
         void _processPendingRemovals(void);
         bool _updateIOFD(EventHandle hEvent);
+        void _removeFromTimeoutQueue(EventHandle hEvent);
 
     private:
         enum _eventFlags : unsigned int
@@ -67,9 +68,27 @@ class EventLoop : public EventLoopBase
             unsigned int nIOEventMask;
         };
 
+        template<typename T, typename TComp>
+        struct ELTimerQueue : public std::priority_queue<T, std::vector<T>, TComp>
+        {
+            bool Remove(const T& value)
+            {
+                auto it = std::find(this->c.begin(), this->c.end(), value);
+                if(it != this->c.end())
+                {
+                    this->c.erase(it);
+                    std::make_heap(this->c.begin(), this->c.end(), this->comp);
+
+                    return true;
+                }
+
+                return false;
+            }
+        };
+
         struct ELTimerQueueComparator
         {
-            typedef std::priority_queue<EventHandle, std::vector<EventHandle>, ELTimerQueueComparator> TimerQueue;
+            typedef ELTimerQueue<EventHandle, ELTimerQueueComparator> TimerQueue;
 
             bool operator()(EventHandle a, EventHandle b) const
             {
