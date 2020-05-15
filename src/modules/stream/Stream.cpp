@@ -8,17 +8,17 @@
 
 #include <cassert>
 
-bool stream::WritableStream::write(const std::string &strData)
+bool stream::Writable::write(const std::string &strData)
 {
     return write(strData.data(), strData.size());
 }
 
-bool stream::WritableStream::write(const std::vector<uint8_t> &vecData)
+bool stream::Writable::write(const std::vector<uint8_t> &vecData)
 {
     return write(vecData.data(), vecData.size());
 }
 
-bool stream::WritableStream::write(const void *buf, size_t size)
+bool stream::Writable::write(const void *buf, size_t size)
 {
     assert(buf);
 
@@ -46,28 +46,28 @@ bool stream::WritableStream::write(const void *buf, size_t size)
     return res;
 }
 
-void stream::WritableStream::end(void)
+void stream::Writable::end(void)
 {
     m_bFinish = true;
 }
 
-void stream::WritableStream::end(const std::string &strData)
+void stream::Writable::end(const std::string &strData)
 {
     end(strData.data(), strData.size());
 }
 
-void stream::WritableStream::end(const std::vector<uint8_t> &vecData)
+void stream::Writable::end(const std::vector<uint8_t> &vecData)
 {
     end(vecData.data(), vecData.size());
 }
 
-void stream::WritableStream::end(const void *buf, size_t size)
+void stream::Writable::end(const void *buf, size_t size)
 {
     write(buf, size);
     end();
 }
 
-bool stream::WritableStream::_onDrained(void)
+bool stream::Writable::_onDrained(void)
 {
     if(m_bFinish)
         EMIT_EVENT_ASYNC0(finish);
@@ -77,12 +77,12 @@ bool stream::WritableStream::_onDrained(void)
     return m_bFinish;
 }
 
-void stream::ReadableStream::pause(void)
+void stream::Readable::pause(void)
 {
     m_bFlowing = false;
 }
 
-void stream::ReadableStream::resume(void)
+void stream::Readable::resume(void)
 {
     if(!m_bFlowing)
     {
@@ -95,7 +95,7 @@ void stream::ReadableStream::resume(void)
     }
 }
 
-bool stream::ReadableStream::_push(const void *buf, size_t size)
+bool stream::Readable::_push(const void *buf, size_t size)
 {
     if(m_bEnded)
     {
@@ -119,7 +119,7 @@ bool stream::ReadableStream::_push(const void *buf, size_t size)
     return m_bFlowing;
 }
 
-void stream::ReadableStream::_emitData(void)
+void stream::Readable::_emitData(void)
 {
     if(m_bFlowing && !m_rdBuffer.empty())
     {

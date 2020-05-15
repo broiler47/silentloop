@@ -12,7 +12,7 @@ namespace net
 
 #define SOCKET_READ_BUF_SIZE 65536
 
-class Socket : public stream::DuplexStream
+class Socket : public stream::Duplex
 {
     //EXPORT_EVENT(connect)
     //EXPORT_EVENT(lookup)

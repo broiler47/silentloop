@@ -17,7 +17,7 @@ class Stream : public IOEvent
         //bool isDestroyrd(void);
 };
 
-class WritableStream : public virtual Stream
+class Writable : public virtual Stream
 {
     EXPORT_EVENT(drain)
     EXPORT_EVENT(finish)
@@ -56,7 +56,7 @@ class WritableStream : public virtual Stream
         bool m_bWrNotified = false;
 };
 
-class ReadableStream : public virtual Stream
+class Readable : public virtual Stream
 {
     EXPORT_EVENT(data, const std::vector<uint8_t>& vecData)
     EXPORT_EVENT(end)
@@ -67,8 +67,8 @@ class ReadableStream : public virtual Stream
     public:
         //bool isPaused(void);
         void pause(void);
-        //void pipe(WritableStream& ws);
-        //void unpipe(WritableStream& ws);
+        //void pipe(Writable& ws);
+        //void unpipe(Writable& ws);
         //std::vector<uint8_t> read(size_t size = 0);
         //bool isReadable(void);
         //std::string getReadableEncoding(void);
@@ -94,7 +94,7 @@ class ReadableStream : public virtual Stream
         bool m_bEnded = false;
 };
 
-class DuplexStream : public ReadableStream, public WritableStream
+class Duplex : public Readable, public Writable
 {
 };
 
