@@ -34,7 +34,7 @@ class Writable : public virtual Stream
         void end(const std::vector<uint8_t>& vecData) { end(vecData.data(), vecData.size()); }
         void end(const void* buf = nullptr, size_t size = 0);
 
-        //bool isWritable(void);
+        bool isWritable(void) { return !m_bDestroyed && !m_bFinish && !m_bWriteError; };
         //bool isWritableEnded(void);
         //bool isWritableFinished(void);
 
@@ -43,11 +43,13 @@ class Writable : public virtual Stream
 
     protected:
         bool _onDrained(void);
+        void _onWriteError(void);
 
     protected:
         std::vector<uint8_t> m_wrBuffer;
         bool m_bFinish = false;
         bool m_bWrNotified = false;
+        bool m_bWriteError = false;
 };
 
 }   // namespace stream

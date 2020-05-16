@@ -22,6 +22,12 @@ bool stream::Writable::write(const void *buf, size_t size)
         return false;
     }
 
+    if(m_bWriteError)
+    {
+        EMIT_EVENT_ASYNC(error, Error("Stream is not writable due to previous error"));
+        return false;
+    }
+
     bool res = m_wrBuffer.empty();
 
     if(!size)
@@ -72,4 +78,9 @@ bool stream::Writable::_onDrained(void)
         EMIT_EVENT_ASYNC0(drain);
 
     return m_bFinish;
+}
+
+void stream::Writable::_onWriteError(void)
+{
+    m_bWriteError = true;
 }

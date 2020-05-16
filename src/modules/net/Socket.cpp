@@ -129,7 +129,10 @@ void net::Socket::_doWrite(void)
         if(nWritten < 0)
         {
             if(!IS_WOULDBLOCK(errno))
+            {
+                _onWriteError();
                 EMIT_EVENT(error, SystemError("write() failed", errno));
+            }
 
             spSocketEvent->SetIOEventFlag(IOEvent::IOEvents::IOEV_WRITE);
 
