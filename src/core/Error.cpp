@@ -21,7 +21,8 @@ const char *Error::_format(const char* errTypeName) const
         { ERR_UNKNOWN, "ERR_UNKNOWN" },
         { ERR_SYSTEM_ERROR, "ERR_SYSTEM_ERROR" },
         { ERR_SERVER_ALREADY_LISTEN, "ERR_SERVER_ALREADY_LISTEN" },
-        { ERR_STREAM_DESTROYED, "ERR_STREAM_DESTROYED" }
+        { ERR_STREAM_DESTROYED, "ERR_STREAM_DESTROYED" },
+        { HTTP_PARSER_ERROR, "HTTP_PARSER_ERROR" }
     };
 
     if(m_strFormatted.empty())

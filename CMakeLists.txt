@@ -49,5 +49,14 @@ add_executable(silentloop
         src/modules/net/Server.h
         src/modules/net/Server.cpp
         src/modules/process/Process.h
-        src/modules/process/Process.cpp)
-
+        src/modules/process/Process.cpp
+        src/modules/http/Server.h
+        src/modules/http/Server.cpp
+        src/modules/http/IncomingMessage.h
+        src/modules/http/IncomingMessage.cpp
+        src/modules/http/ServerResponse.h
+        src/modules/http/ServerResponse.cpp
+        src/modules/http/internal/http_parser.h
+        src/modules/http/internal/http_parser.c
+        src/modules/http/internal/HTTPRequestParser.h
+        src/modules/http/internal/HTTPRequestParser.cpp)
