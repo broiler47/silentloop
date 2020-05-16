@@ -11,11 +11,17 @@
 
 class Timeout : public EventEmitter, public Linkable
 {
+    EXPORT_EVENT(timeout)
+
+    public:
+        static std::shared_ptr<Timeout> CreateShared(void);
+
+    private:
+        Timeout(void) = default;
+
     public:
         void Refresh(EventLoopBase::TimeInterval timeout);
         void Cancel(void);
-
-    EXPORT_EVENT(timeout)
 
     private:
         std::weak_ptr<Event> m_wpEvent;

@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
-std::shared_ptr<net::Socket> net::Socket::Create(int fd, bool allowHalfOpen, bool startReading)
+std::shared_ptr<net::Socket> net::Socket::CreateShared(int fd, bool allowHalfOpen, bool startReading)
 {
     auto sp = std::make_shared<Socket>();
     sp->_init(fd, allowHalfOpen, startReading);
@@ -45,7 +45,7 @@ void net::Socket::_init(int fd, bool allowHalfOpen, bool startReading)
 
     assert(!m_wpSocketEvent.lock());
 
-    auto spSocketEvent = std::make_shared<IOEvent>();
+    auto spSocketEvent = IOEvent::CreateShared();
     LinkWith(spSocketEvent);
     m_wpSocketEvent = spSocketEvent;
 

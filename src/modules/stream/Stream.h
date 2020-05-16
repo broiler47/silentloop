@@ -10,7 +10,7 @@
 namespace stream
 {
 
-class Stream : virtual public EventEmitter
+class Stream : public EventEmitter
 {
     EXPORT_EVENT(error, const Error& err)
     EXPORT_EVENT(close)

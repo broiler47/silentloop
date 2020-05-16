@@ -6,11 +6,18 @@
 
 #include "Event.h"
 
+std::shared_ptr<Timeout> Timeout::CreateShared(void)
+{
+    struct make_shared_enabler : public Timeout {};
+
+    return std::make_shared<make_shared_enabler>();
+}
+
 void Timeout::Refresh(EventLoopBase::TimeInterval timeout)
 {
     Cancel();
 
-    auto spEvent = std::make_shared<Event>();
+    auto spEvent = Event::CreateShared();
     m_wpEvent = spEvent;
 
     spEvent->Attach();
@@ -36,7 +43,7 @@ void Timeout::Cancel(void)
 
 std::shared_ptr<Timeout> SetTimeout(const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
 {
-    auto sp = std::make_shared<Timeout>();
+    auto sp = Timeout::CreateShared();
 
     sp->on_timeout(cb);
     sp->Refresh(timeout);

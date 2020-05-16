@@ -17,6 +17,12 @@ class IOEvent : public Event
     EXPORT_EVENT(HUP)
 
     public:
+        static std::shared_ptr<IOEvent> CreateShared(void);
+
+    protected:
+        IOEvent(void) = default;
+
+    public:
         ~IOEvent(void) override;
 
     public:

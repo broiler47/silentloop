@@ -14,9 +14,6 @@
 class IOMux_epoll : public IOMuxBase
 {
     public:
-        static std::shared_ptr<IOMuxBase> Create(unsigned int maxEvents = 32);
-
-    public:
         explicit IOMux_epoll(unsigned int maxEvents);
         ~IOMux_epoll(void) override;
 

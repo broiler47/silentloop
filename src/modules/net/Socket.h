@@ -20,7 +20,7 @@ class Socket : public stream::Duplex, public Linkable
     //EXPORT_EVENT(timeout)
 
     public:
-        static std::shared_ptr<Socket> Create(int fd, bool allowHalfOpen, bool startReading);
+        static std::shared_ptr<Socket> CreateShared(int fd, bool allowHalfOpen, bool startReading);
 
     public:
         void setNoDelay(bool noDelay = true);

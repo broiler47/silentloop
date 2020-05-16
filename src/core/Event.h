@@ -19,7 +19,12 @@ class Event : public Linkable, public EventEmitter
     EXPORT_EVENT(error, const Error& err)
 
     public:
+        static std::shared_ptr<Event> CreateShared(void);
+
+    protected:
         Event(void);
+
+    public:
         ~Event(void) override;
 
     public:

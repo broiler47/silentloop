@@ -12,6 +12,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+std::shared_ptr<IOEvent> IOEvent::CreateShared(void)
+{
+    struct make_shared_enabler : public IOEvent {};
+
+    return std::make_shared<make_shared_enabler>();
+}
+
 IOEvent::~IOEvent(void)
 {
     _close();

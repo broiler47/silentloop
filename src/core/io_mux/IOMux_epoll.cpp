@@ -12,13 +12,6 @@
 
 #include <unistd.h>
 
-std::shared_ptr<IOMuxBase> IOMux_epoll::Create(unsigned int maxEvents)
-{
-    assert(maxEvents > 0);
-
-    return std::make_shared<IOMux_epoll>(maxEvents);
-}
-
 IOMux_epoll::IOMux_epoll(unsigned int maxEvents) :
     m_vecReadyEvents(maxEvents),
     m_fdEpoll(-1)

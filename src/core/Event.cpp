@@ -9,6 +9,13 @@
 #include "Log.h"
 #include "EventLoopFactory.h"
 
+std::shared_ptr<Event> Event::CreateShared(void)
+{
+    struct make_shared_enabler : public Event {};
+
+    return std::make_shared<make_shared_enabler>();
+}
+
 Event::Event(void)
 {
     //DEBUG("Event(0x%" PRIXPTR ")", this);

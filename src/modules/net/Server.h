@@ -18,6 +18,9 @@ class Server : public EventEmitter, public Linkable
     EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
 
     public:
+        static std::shared_ptr<Server> CreateShared(bool allowHalfOpen, bool pauseOnConnect);
+
+    protected:
         Server(bool allowHalfOpen, bool pauseOnConnect);
 
     public:

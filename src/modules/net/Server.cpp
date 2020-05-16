@@ -12,6 +12,18 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+std::shared_ptr<net::Server> net::Server::CreateShared(bool allowHalfOpen, bool pauseOnConnect)
+{
+    struct make_shared_enabler : public Server
+    {
+        make_shared_enabler(bool allowHalfOpen, bool pauseOnConnect) :
+            Server(allowHalfOpen, pauseOnConnect)
+        {}
+    };
+
+    return std::make_shared<make_shared_enabler>(allowHalfOpen, pauseOnConnect);
+}
+
 net::Server::Server(bool allowHalfOpen, bool pauseOnConnect) :
     m_bAllowHalfOpen(allowHalfOpen),
     m_bPauseOnConnect(pauseOnConnect)
@@ -23,7 +35,7 @@ void net::Server::Listen(uint16_t nPort, const std::string &strHost, int backlog
     auto spListenerEvent = m_wpListenerEvent.lock();
     if(!spListenerEvent)
     {
-        spListenerEvent = std::make_shared<IOEvent>();
+        spListenerEvent = IOEvent::CreateShared();
         LinkWith(spListenerEvent);
         m_wpListenerEvent = spListenerEvent;
 
@@ -47,7 +59,7 @@ void net::Server::Listen(uint16_t nPort, const std::string &strHost, int backlog
                 int fdClient = int(TEMP_FAILURE_RETRY(accept4(spListenerEvent->GetFD(), nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC)));
                 if(fdClient >= 0)
                 {
-                    auto spSocket = Socket::Create(fdClient, m_bAllowHalfOpen, !m_bPauseOnConnect);
+                    auto spSocket = Socket::CreateShared(fdClient, m_bAllowHalfOpen, !m_bPauseOnConnect);
                     EMIT_EVENT(connection, spSocket);
                 }
                 else if(IS_WOULDBLOCK(errno))
@@ -165,5 +177,5 @@ bool net::Server::_listen(const std::shared_ptr<IOEvent>& spListenerEvent, int f
 
 std::shared_ptr<net::Server> net::CreateServer(bool allowHalfOpen, bool pauseOnConnect)
 {
-    return std::make_shared<Server>(allowHalfOpen, pauseOnConnect);
+    return Server::CreateShared(allowHalfOpen, pauseOnConnect);
 }
