@@ -4,7 +4,6 @@
 
 #include "Linkable.h"
 
-#include "Log.h"
 #include "EventLoopFactory.h"
 
 #include <cassert>

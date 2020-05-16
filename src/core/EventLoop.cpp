@@ -73,7 +73,7 @@ void EventLoop::_removeEvent(EventLoopBase::EventHandle hEvent)
     m_vecRMPending.push_back(hEvent);
 
     auto *pEventInfo = (_eventInfo *)hEvent;
-    pEventInfo->flags &= EVF_DETACHED;
+    pEventInfo->flags |= EVF_DETACHED;
 
     CATCH_ALL(pEventInfo->spEvent->_onDetached());
 
