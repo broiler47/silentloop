@@ -64,7 +64,7 @@ void IOEvent::Close(void)
                 EMIT_EVENT(close);
 
             _close();
-        });
+        }, GetSharedPtr());
 
         Detach();
     }

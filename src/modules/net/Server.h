@@ -10,7 +10,7 @@
 namespace net
 {
 
-class Server : public EventEmitter, public Linkable
+class Server : public EventEmitter
 {
     EXPORT_EVENT(error, const Error& err)
     EXPORT_EVENT(close)

@@ -31,21 +31,7 @@ void Event::Attach(void)
     assert(!m_pEL);
     assert(!m_handle);
 
-    // NOTE: In case this object is not managed by std::shared_ptr,
-    // shared_from_this() will only throw std::bad_weak_ptr in C++17 or later.
-    std::shared_ptr<Event> spThis;
-    try
-    {
-        spThis = static_pointer_cast<Event>(shared_from_this());
-    }
-    catch(std::bad_weak_ptr&)
-    {
-        auto errMsg = "Event objects should be managed by std::shared_ptr and should not be linked from the constructor";
-        ERROR(errMsg);
-        throw std::runtime_error(errMsg);
-    }
-
-    GetThreadEventLoop()->Add(spThis);
+    GetThreadEventLoop()->Add(GetSharedPtr<Event>());
 }
 
 void Event::Detach(void)

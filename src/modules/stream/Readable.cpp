@@ -19,7 +19,7 @@ void stream::Readable::resume(void)
     {
         m_bFlowing = true;
 
-        process::NextTick([this]() {
+        NextTick([this]() {
             _read();
             _emitData();
         });

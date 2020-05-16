@@ -9,9 +9,8 @@
 #include "Error.h"
 #include "Utils.h"
 #include "EventEmitter.h"
-#include "Linkable.h"
 
-class Event : public Linkable, public EventEmitter
+class Event : public EventEmitter
 {
     friend class EventLoop;
 

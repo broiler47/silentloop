@@ -3,10 +3,3 @@
 //
 
 #include "EventEmitter.h"
-
-#include "EventLoopFactory.h"
-
-void EventEmitter::_nextTick(const std::function<void(void)> &cb)
-{
-    GetThreadEventLoop()->NextTick(cb);
-}

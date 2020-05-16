@@ -5,26 +5,18 @@
 #include "Linkable.h"
 
 #include "Log.h"
+#include "EventLoopFactory.h"
 
 #include <cassert>
 
 void Linkable::LinkWith(const std::shared_ptr<Linkable> &sp)
 {
-    // NOTE: In case this object is not managed by std::shared_ptr,
-    // shared_from_this() will only throw std::bad_weak_ptr in C++17 or later.
-    std::shared_ptr<Linkable> spThis;
-    try
-    {
-        spThis = shared_from_this();
-    }
-    catch(std::bad_weak_ptr&)
-    {
-        auto errMsg = "Linkable objects should be managed by std::shared_ptr and should not be linked from the constructor";
-        ERROR(errMsg);
-        throw std::runtime_error(errMsg);
-    }
+    sp->_link(GetSharedPtr());
+}
 
-    sp->_link(spThis);
+void Linkable::NextTick(const std::function<void(void)> &cb)
+{
+    GetThreadEventLoop()->NextTick(cb, GetSharedPtr());
 }
 
 void Linkable::_link(const std::shared_ptr<Linkable> &sp)
@@ -38,9 +30,9 @@ void Linkable::_link(const std::shared_ptr<Linkable> &sp)
     m_vecLinks.push_back(sp);
 }
 
-bool Linkable::_lookup(const std::shared_ptr<Linkable> &sp) const
+bool Linkable::_lookup(const std::shared_ptr<Linkable> &sp)
 {
-    if(sp == shared_from_this())
+    if(sp == GetSharedPtr())
         return true;
 
     for(const auto& spLink : m_vecLinks)

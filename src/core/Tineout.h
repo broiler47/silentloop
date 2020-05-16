@@ -9,7 +9,7 @@
 #include "Linkable.h"
 #include "EventLoopBase.h"
 
-class Timeout : public EventEmitter, public Linkable
+class Timeout : public EventEmitter
 {
     EXPORT_EVENT(timeout)
 

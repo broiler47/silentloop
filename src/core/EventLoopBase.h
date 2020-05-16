@@ -5,6 +5,8 @@
 #ifndef EVENTLOOPBASE_H_A91553AEC84043ADB582AD4E4F5D2700
 #define EVENTLOOPBASE_H_A91553AEC84043ADB582AD4E4F5D2700
 
+#include "Linkable.h"
+
 #include <memory>
 #include <functional>
 #include <queue>
@@ -23,7 +25,7 @@ class EventLoopBase
 
     public:
         virtual bool Add(const std::shared_ptr<Event>& spEvent) = 0;
-        void NextTick(const std::function<void(void)>& cb);
+        void NextTick(const std::function<void(void)>& cb, const std::shared_ptr<Linkable>& spOwner = nullptr);
 
     public:
         typedef void* EventHandle;
@@ -38,7 +40,7 @@ class EventLoopBase
         void _drainNextTickQueue(void);
 
     private:
-        std::queue<std::function<void(void)>> m_qNextTick;
+        std::queue<std::pair<std::function<void(void)>, std::shared_ptr<Linkable>>> m_qNextTick;
 };
 
 #endif //EVENTLOOPBASE_H_A91553AEC84043ADB582AD4E4F5D2700

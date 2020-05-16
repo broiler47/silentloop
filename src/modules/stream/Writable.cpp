@@ -35,7 +35,7 @@ bool stream::Writable::write(const void *buf, size_t size)
     {
         m_bWrNotified = true;
 
-        process::NextTick([this](void) {
+        NextTick([this](void) {
             m_bWrNotified = false;
             _write();
         });

@@ -5,6 +5,8 @@
 #ifndef EVENTEMITTER_H_60597FC6BA5A4253B463B024646651C8
 #define EVENTEMITTER_H_60597FC6BA5A4253B463B024646651C8
 
+#include "Linkable.h"
+
 #include <functional>
 #include <vector>
 
@@ -31,20 +33,22 @@
 
 #define EVENT_LISTENER_COUNT(name) (_m_vec_cb_on_##name.length())
 
-class EventEmitter
+#include "Log.h"
+
+class SyncEventEmitter
+{};
+
+class EventEmitter : public Linkable
 {
     public:
         template <typename TEventCb, typename ...Args>
         void EmitEventAsync(const std::vector<TEventCb>& vecCb, Args&&... args)
         {
-            _nextTick([&vecCb, args...](void) {
+            NextTick([&vecCb, args...](void) {
                 for(const auto & cb : vecCb)
                     CATCH_ALL(cb(args...));
             });
         }
-
-    private:
-        static void _nextTick(const std::function<void(void)>& cb);
 };
 
 #endif //EVENTEMITTER_H_60597FC6BA5A4253B463B024646651C8
