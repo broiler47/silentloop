@@ -24,10 +24,12 @@ class Writable : public virtual Stream
 
         //void setDefaultEncoding(std::string)
 
+        void write(const char* str) { write(str, strlen(str)); }
         bool write(const void* buf, size_t size);
         bool write(const std::string& strData) { return write(strData.data(), strData.size()); }
         bool write(const std::vector<uint8_t>& vecData) { return write(vecData.data(), vecData.size()); }
 
+        void end(const char* str) { end(str, strlen(str)); }
         void end(const std::string& strData) { end(strData.data(), strData.size()); }
         void end(const std::vector<uint8_t>& vecData) { end(vecData.data(), vecData.size()); }
         void end(const void* buf = nullptr, size_t size = 0);

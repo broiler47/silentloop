@@ -16,15 +16,13 @@ class Stream : public EventEmitter
     EXPORT_EVENT(close)
 
     public:
-        void destroy(void);
-        void destroy(const Error& err);
+        void destroy(void) { destroy(nullptr); }
+        void destroy(const Error& err) { destroy(&err); }
+        void destroy(const Error* pErr);
         bool isDestroyed(void) const { return m_bDestroyed; }
 
     protected:
         virtual void _destroy(const Error* pErr, const std::function<void(const Error& err)>& cb) = 0;
-
-    private:
-        void _doDestroy(const Error* pErr);
 
     protected:
         bool m_bDestroyed = false;

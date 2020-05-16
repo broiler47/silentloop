@@ -4,17 +4,7 @@
 
 #include "Stream.h"
 
-void stream::Stream::destroy(void)
-{
-    _doDestroy(nullptr);
-}
-
-void stream::Stream::destroy(const Error &err)
-{
-    _doDestroy(&err);
-}
-
-void stream::Stream::_doDestroy(const Error *pErr)
+void stream::Stream::destroy(const Error *pErr)
 {
     if(m_bDestroyed)
         return;
