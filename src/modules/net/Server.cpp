@@ -126,6 +126,13 @@ void net::Server::_openTCPSocket(const std::shared_ptr<IOEvent>& spListenerEvent
             continue;
         }
 
+        int nEnable = 1;
+        if(setsockopt(fdSocket, SOL_SOCKET, SO_REUSEADDR, &nEnable, sizeof(nEnable)) < 0)
+        {
+            // This is not a critical error so no need to notify anybody
+            SYSCALL_ERROR("setsockopt(SO_REUSEADDR)");
+        }
+
         if(bind(fdSocket, rp->ai_addr, rp->ai_addrlen) < 0)
             nLsatError = errno;
         else
@@ -141,13 +148,6 @@ void net::Server::_openTCPSocket(const std::shared_ptr<IOEvent>& spListenerEvent
     {
         EMIT_EVENT_ASYNC(error, SystemError("Could not bind to requested address", nLsatError));
         return;
-    }
-
-    int nEnable = 1;
-    if(setsockopt(fdSocket, SOL_SOCKET, SO_REUSEADDR, &nEnable, sizeof(nEnable)) < 0)
-    {
-        // This is not a critical error so no need to notify anybody
-        SYSCALL_ERROR("setsockopt(SO_REUSEADDR)");
     }
 
     if(!_listen(spListenerEvent, fdSocket, backlog))
