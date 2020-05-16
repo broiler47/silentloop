@@ -34,9 +34,6 @@
 class EventEmitter
 {
     public:
-        virtual ~EventEmitter(void) = default;
-
-    public:
         template <typename TEventCb, typename ...Args>
         void EmitEventAsync(const std::vector<TEventCb>& vecCb, Args&&... args)
         {
@@ -46,8 +43,8 @@ class EventEmitter
             });
         }
 
-    protected:
-        virtual void _nextTick(const std::function<void(void)>& cb) = 0;
+    private:
+        static void _nextTick(const std::function<void(void)>& cb);
 };
 
 #endif //EVENTEMITTER_H_60597FC6BA5A4253B463B024646651C8

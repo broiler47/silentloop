@@ -30,12 +30,24 @@ add_executable(silentloop
         src/core/IOEvent.cpp
         src/core/Error.h
         src/core/Error.cpp
+        src/core/EventLoopFactory.h
         src/core/EventLoopFactory.cpp
         src/core/EventEmitter.h
+        src/core/EventEmitter.cpp
         src/EventLoop.h
+        src/core/Linkable.h
+        src/core/Linkable.cpp
         src/modules/stream/Stream.h
         src/modules/stream/Stream.cpp
+        src/modules/stream/Writable.h
+        src/modules/stream/Writable.cpp
+        src/modules/stream/Readable.h
+        src/modules/stream/Readable.cpp
+        src/modules/stream/Duplex.h
         src/modules/net/Socket.h
         src/modules/net/Socket.cpp
         src/modules/net/Server.h
-        src/modules/net/Server.cpp)
+        src/modules/net/Server.cpp
+        src/modules/process/Process.h
+        src/modules/process/Process.cpp)
+

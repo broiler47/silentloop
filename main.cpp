@@ -4,28 +4,30 @@
 
 #include "modules/net/Server.h"
 
-static void _ev_main(void)
+static void _timersTest(void)
 {
-    INFO("<=== START ===>");
+    SetTimeout([](){
+        INFO("Hello, World!");
+    }, 3000);
 
-//    SetTimeout(eventLoop, [](){
-//        INFO("Hello, World!");
-//    }, 3000);
+}
 
+static void _tcpServerTest(void)
+{
     auto spServer = net::CreateServer();
     spServer->Listen(7890);
 
     spServer->on_error([](const Error& err) {
-        ERROR("Server error: %s", err.Format());
+        ERROR("TCP: Server error: %s", err.Format());
         exit(1);
     });
 
     spServer->on_listening([](void) {
-        INFO("Listening...");
+        INFO("TCP: Listening...");
     });
 
     spServer->on_close([](void) {
-        INFO("Server socket closed");
+        INFO("TCP: Server socket closed");
     });
 
     // Capturing std::shared_ptr of the event object into it's own
@@ -34,9 +36,9 @@ static void _ev_main(void)
     // leaks. One possible workaround is to capture raw event object pointer.
     auto pServer = spServer.get();
     spServer->on_connection([pServer](const std::shared_ptr<net::Socket>& spSocket) {
-        DEBUG("Incoming connection");
+        DEBUG("TCP: Incoming connection");
 
-        //pListener->Close();
+        pServer->Close();
 
         spSocket->setNoDelay();
 
@@ -46,7 +48,7 @@ static void _ev_main(void)
 
         auto pSocket = spSocket.get();
         spSocket->on_data([pSocket](const std::vector<uint8_t>& data) {
-            DEBUG("Client: %s", std::string(data.begin(), data.end()).c_str());
+            DEBUG("TCP: Client: %s", std::string(data.begin(), data.end()).c_str());
 
             pSocket->write("You've sent me: ");
             pSocket->write(data);
@@ -70,6 +72,14 @@ static void _ev_main(void)
             DEBUG("TCP socket closed");
         });
     });
+}
+
+static void _ev_main(void)
+{
+    INFO("<=== START ===>");
+
+    _timersTest();
+    _tcpServerTest();
 }
 
 int main(void)

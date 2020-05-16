@@ -10,30 +10,30 @@
 namespace net
 {
 
-class Server : public IOEvent
+class Server : public EventEmitter, public Linkable
 {
+    EXPORT_EVENT(error, const Error& err)
+    EXPORT_EVENT(close)
+    EXPORT_EVENT(listening)
+    EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
+
     public:
         Server(bool allowHalfOpen, bool pauseOnConnect);
 
     public:
         static const int nDefaultBacklogValue = 32;
 
-    EXPORT_EVENT(listening)
-    EXPORT_EVENT(connection, const std::shared_ptr<Socket>& spSocket)
-
     public:
         void Listen(uint16_t nPort, const std::string &strHost = "0.0.0.0", int backlog = nDefaultBacklogValue, bool bInet6 = false);
+        void Close(void);
         //void setTimeout(unsigned int ms);
 
     private:
-        void _openTCPSocket(uint16_t nPort, const std::string& strHost, int backlog, bool bInet6);
-        bool _listen(int fd, int backlog);
+        void _openTCPSocket(const std::shared_ptr<IOEvent>& spListenerEvent, uint16_t nPort, const std::string& strHost, int backlog, bool bInet6);
+        bool _listen(const std::shared_ptr<IOEvent>& spListenerEvent, int fd, int backlog);
 
     private:
-        void OnRead(void) override;
-        void OnError(void) override;
-
-    private:
+        std::weak_ptr<IOEvent> m_wpListenerEvent;
         bool m_bAllowHalfOpen;
         bool m_bPauseOnConnect;
 };

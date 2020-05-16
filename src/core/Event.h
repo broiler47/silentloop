@@ -9,57 +9,40 @@
 #include "Error.h"
 #include "Utils.h"
 #include "EventEmitter.h"
+#include "Linkable.h"
 
-class Event : public EventEmitter
+class Event : public Linkable, public EventEmitter
 {
     friend class EventLoop;
 
+    EXPORT_EVENT(timeout)
     EXPORT_EVENT(error, const Error& err)
 
     public:
-        template <typename TEvent, typename ...Args>
-        static std::shared_ptr<TEvent> CreateEvent(Args&&... args)
-        {
-            auto sp = std::make_shared<TEvent>(std::forward<Args>(args)...);
-
-            auto spBase = std::static_pointer_cast<Event>(sp);
-            spBase->_onCreated(spBase);
-
-            return sp;
-        }
-
-    protected:
-        Event(void) = default;
+        Event(void);
+        ~Event(void) override;
 
     public:
-        virtual ~Event(void) = default;
+        void Attach(void);
+        void Detach(void);
+        void SetTimeout(EventLoopBase::TimeInterval timeout);
+        void CancelTimeout(void);
+        virtual int GetFD(void) const { return -1; }
+        virtual unsigned int GetIOEventMask(void) const { return 0; }
 
     protected:
-        virtual void OnTimeout(void) {}
+        virtual void OnTimeout(void) { EMIT_EVENT(timeout); }
         //virtual void OnInterval(void) {}
         //virtual void OnImmediate(void) {}
         virtual void OnRead(void) {}
         virtual void OnWrite(void) {}
         virtual void OnHUP(void) {}
-        virtual void OnError(void) {}
-
-    // For internal use of derivatives of Event object or EventLoop
-    protected:
-        virtual int GetFD(void) const { return -1; }
-        virtual unsigned int GetIOEventMask(void) const { return 0; }
+        virtual void OnError(void) { EMIT_EVENT(error, Error("Error on file descriptor")); }
 
     // For internal use of derivatives of Event object
     protected:
-        void _attach(void);
         bool _isAttached(void) const;
-        void _detach(void);
-        void _setTimeout(EventLoopBase::TimeInterval timeout);
-        void _cancelTimeout(void);
         void _notifyIOStateChange(void);
-        void _nextTick(const std::function<void(void)>& cb) override;
-
-    private:
-        void _onCreated(const std::weak_ptr<Event>& self);
 
     // Intended to use only by EventLoop
     protected:
@@ -67,7 +50,6 @@ class Event : public EventEmitter
         void _onDetached(void);
 
     private:
-        std::weak_ptr<Event> m_self;
         EventLoopBase *m_pEL = nullptr;
         EventLoopBase::EventHandle m_handle = nullptr;
 };

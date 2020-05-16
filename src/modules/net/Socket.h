@@ -5,14 +5,14 @@
 #ifndef SOCKET_H_21546E3F7E4643558959A187FA231DFB
 #define SOCKET_H_21546E3F7E4643558959A187FA231DFB
 
-#include "modules/stream/Stream.h"
+#include "modules/stream/Duplex.h"
 
 namespace net
 {
 
 #define SOCKET_READ_BUF_SIZE 65536
 
-class Socket : public stream::Duplex
+class Socket : public stream::Duplex, public Linkable
 {
     //EXPORT_EVENT(connect)
     //EXPORT_EVENT(lookup)
@@ -29,12 +29,7 @@ class Socket : public stream::Duplex
         void _init(int fd, bool allowHalfOpen, bool startReading);
 
     private:
-        void OnRead(void) override;
-        void OnWrite(void) override;
-        void OnHUP(void) override;
-        void OnError(void) override;
-
-    private:
+        void _destroy(const Error* pErr, const std::function<void(const Error& err)>& cb) override;
         void _write(void) override;
         void _read(void) override;
 
@@ -43,9 +38,11 @@ class Socket : public stream::Duplex
         void _doRead(void);
 
     private:
+        std::weak_ptr<IOEvent> m_wpSocketEvent;
         bool m_bAllowHalfOpen = false;
         bool m_bHUP = false;
         bool m_bWRShutdown = false;
+        bool m_bReading = false;
 };
 
 }   // namespace net

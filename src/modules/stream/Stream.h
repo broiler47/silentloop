@@ -10,92 +10,24 @@
 namespace stream
 {
 
-class Stream : public IOEvent
+class Stream : virtual public EventEmitter
 {
-    public:
-        //void destroy(void);
-        //bool isDestroyrd(void);
-};
-
-class Writable : public virtual Stream
-{
-    EXPORT_EVENT(drain)
-    EXPORT_EVENT(finish)
-    //EXPORT_EVENT(pipe)
-    //EXPORT_EVENT(unpipe)
+    EXPORT_EVENT(error, const Error& err)
+    EXPORT_EVENT(close)
 
     public:
-        //void cork(void);
-        //void uncork(void);
-        //int writableCorked(void);
-
-        //void setDefaultEncoding(std::string)
-
-        bool write(const std::string& strData);
-        bool write(const std::vector<uint8_t>& vecData);
-        bool write(const void* buf, size_t size);
-
-        void end(void);
-        void end(const std::string& strData);
-        void end(const std::vector<uint8_t>& vecData);
-        void end(const void* buf, size_t size);
-
-        //bool isWritable(void);
-        //bool isWritableEnded(void);
-        //bool isWritableFinished(void);
+        void destroy(void);
+        void destroy(const Error& err);
+        bool isDestroyed(void) const { return m_bDestroyed; }
 
     protected:
-        virtual void _write(void) = 0;
-
-    protected:
-        bool _onDrained(void);
-
-    protected:
-        std::vector<uint8_t> m_wrBuffer;
-        bool m_bFinish = false;
-        bool m_bWrNotified = false;
-};
-
-class Readable : public virtual Stream
-{
-    EXPORT_EVENT(data, const std::vector<uint8_t>& vecData)
-    EXPORT_EVENT(end)
-    //EXPORT_EVENT(pause)
-    //EXPORT_EVENT(resume)
-    //EXPORT_EVENT(readable)
-
-    public:
-        //bool isPaused(void);
-        void pause(void);
-        //void pipe(Writable& ws);
-        //void unpipe(Writable& ws);
-        //std::vector<uint8_t> read(size_t size = 0);
-        //bool isReadable(void);
-        //std::string getReadableEncoding(void);
-        //void setEncoding(std::string)
-        //bool isReadableEnded(void);
-        //bool isReadableFlowing(void);
-        void resume(void);
-        //void unshift(const std::string& strData);
-        //void unshift(const std::vector<uint8_t>& vecData);
-
-    protected:
-        virtual void _read(void) = 0;
-
-    protected:
-        bool _push(const void* buf, size_t size);
+        virtual void _destroy(const Error* pErr, const std::function<void(const Error& err)>& cb) = 0;
 
     private:
-        void _emitData(void);
+        void _doDestroy(const Error* pErr);
 
     protected:
-        std::vector<uint8_t> m_rdBuffer;
-        bool m_bFlowing = false;
-        bool m_bEnded = false;
-};
-
-class Duplex : public Readable, public Writable
-{
+        bool m_bDestroyed = false;
 };
 
 }   // namespace stream

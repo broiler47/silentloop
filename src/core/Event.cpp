@@ -6,38 +6,52 @@
 
 #include <cassert>
 
-extern thread_local std::shared_ptr<EventLoopBase> _tls_event_loop;
+#include "Log.h"
+#include "EventLoopFactory.h"
 
-void Event::_attach(void)
+Event::Event(void)
+{
+    //DEBUG("Event(0x%" PRIXPTR ")", this);
+}
+
+Event::~Event(void)
+{
+    //DEBUG("~Event(0x%" PRIXPTR ")", this);
+}
+
+void Event::Attach(void)
 {
     assert(!m_pEL);
     assert(!m_handle);
 
-    auto spSelf = m_self.lock();
+    // NOTE: In case this object is not managed by std::shared_ptr,
+    // shared_from_this() will only throw std::bad_weak_ptr in C++17 or later.
+    std::shared_ptr<Event> spThis;
+    try
+    {
+        spThis = static_pointer_cast<Event>(shared_from_this());
+    }
+    catch(std::bad_weak_ptr&)
+    {
+        auto errMsg = "Event objects should be managed by std::shared_ptr and should not be linked from the constructor";
+        ERROR(errMsg);
+        throw std::runtime_error(errMsg);
+    }
 
-    if(!spSelf)
-        throw std::runtime_error("Attempting ot attach unreferenced event. Please make sure that event objects are always created with Event::CreateEvent()!");
-
-    if(!_tls_event_loop)
-        throw std::runtime_error("Unable to attach event from thread with no local event loop");
-
-    _tls_event_loop->Add(spSelf);
+    GetThreadEventLoop()->Add(spThis);
 }
 
-bool Event::_isAttached(void) const
+void Event::Detach(void)
 {
-    return m_pEL != nullptr;
-}
+    if(!m_pEL)
+        return;
 
-void Event::_detach(void)
-{
-    assert(m_pEL);
     assert(m_handle);
 
     m_pEL->_removeEvent(m_handle);
 }
 
-void Event::_setTimeout(EventLoopBase::TimeInterval timeout)
+void Event::SetTimeout(EventLoopBase::TimeInterval timeout)
 {
     assert(m_pEL);
     assert(m_handle);
@@ -45,12 +59,17 @@ void Event::_setTimeout(EventLoopBase::TimeInterval timeout)
     m_pEL->_setTimeout(m_handle, timeout);
 }
 
-void Event::_cancelTimeout(void)
+void Event::CancelTimeout(void)
 {
     assert(m_pEL);
     assert(m_handle);
 
     m_pEL->_cancelTimeout(m_handle);
+}
+
+bool Event::_isAttached(void) const
+{
+    return m_pEL != nullptr;
 }
 
 void Event::_notifyIOStateChange(void)
@@ -59,23 +78,6 @@ void Event::_notifyIOStateChange(void)
     assert(m_handle);
 
     m_pEL->_notifyIOStateChange(m_handle);
-}
-
-void Event::_nextTick(const std::function<void(void)> &cb)
-{
-    assert(m_pEL);
-    assert(m_handle);
-    assert(cb);
-
-    m_pEL->_nextTick(cb);
-}
-
-void Event::_onCreated(const std::weak_ptr<Event> &self)
-{
-    assert(self.lock());
-    assert(!m_self.lock());
-
-    m_self = self;
 }
 
 void Event::_onAttach(EventLoopBase* pEL, EventLoopBase::EventHandle handle)

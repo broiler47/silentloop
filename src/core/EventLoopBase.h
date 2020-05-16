@@ -23,6 +23,7 @@ class EventLoopBase
 
     public:
         virtual bool Add(const std::shared_ptr<Event>& spEvent) = 0;
+        void NextTick(const std::function<void(void)>& cb);
 
     public:
         typedef void* EventHandle;
@@ -34,7 +35,6 @@ class EventLoopBase
         virtual void _cancelTimeout(EventHandle hEvent) = 0;
 
     protected:
-        void _nextTick(const std::function<void(void)>& cb);
         void _drainNextTickQueue(void);
 
     private:

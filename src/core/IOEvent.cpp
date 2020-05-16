@@ -5,6 +5,7 @@
 #include "IOEvent.h"
 
 #include "Log.h"
+#include "EventLoopFactory.h"
 
 #include <cassert>
 
@@ -16,7 +17,7 @@ IOEvent::~IOEvent(void)
     _close();
 }
 
-bool IOEvent::EnableNonBlockingFD(bool enable)
+bool IOEvent::EnableNonBlockingIO(bool enable)
 {
     if(m_fd < 0)
     {
@@ -51,14 +52,14 @@ void IOEvent::Close(void)
 {
     if(_isAttached())
     {
-        _nextTick([this](void) {
+        GetThreadEventLoop()->NextTick([this](void) {
             if(m_fd >= 0)
                 EMIT_EVENT(close);
 
             _close();
         });
 
-        _detach();
+        Detach();
     }
     else
         _close();

@@ -9,6 +9,7 @@
 #include <vector>
 #include <cerrno>
 #include <cstring>
+#include <cinttypes>
 
 class Log
 {

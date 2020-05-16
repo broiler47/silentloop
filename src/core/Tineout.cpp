@@ -4,38 +4,42 @@
 
 #include "Tineout.h"
 
-#include "Utils.h"
+#include "Event.h"
 
-void TimeoutEvent::Arm(EventLoopBase::TimeInterval timeout)
+void Timeout::Refresh(EventLoopBase::TimeInterval timeout)
 {
     Cancel();
 
-    _attach();
-    _setTimeout(timeout);
+    auto spEvent = std::make_shared<Event>();
+    m_wpEvent = spEvent;
+
+    spEvent->Attach();
+
+    LinkWith(spEvent);
+
+    spEvent->on_timeout([this](void) {
+        Cancel();
+        EMIT_EVENT(timeout);
+    });
+
+    spEvent->SetTimeout(timeout);
 }
 
-void TimeoutEvent::Cancel(void)
+void Timeout::Cancel(void)
 {
-    if(!_isAttached())
+    auto spEvent = m_wpEvent.lock();
+    if(!spEvent)
         return;
 
-    _cancelTimeout();
-    _detach();
+    spEvent->Detach();
 }
 
-void TimeoutEvent::OnTimeout(void)
+std::shared_ptr<Timeout> SetTimeout(const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
 {
-    Event::OnTimeout();
+    auto sp = std::make_shared<Timeout>();
 
-    _detach();
-
-    EMIT_EVENT(timeout);
-}
-
-std::shared_ptr<TimeoutEvent> SetTimeout(const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
-{
-    auto sp = Event::CreateEvent<TimeoutEvent>();
     sp->on_timeout(cb);
-    sp->Arm(timeout);
+    sp->Refresh(timeout);
+
     return sp;
 }
