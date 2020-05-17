@@ -43,6 +43,9 @@ void net::Socket::_init(int fd, bool allowHalfOpen, bool startReading)
 
     m_bAllowHalfOpen = allowHalfOpen;
 
+    if(startReading)
+        resume();
+
     assert(!m_wpSocketEvent.lock());
 
     auto spSocketEvent = IOEvent::CreateShared();
@@ -71,9 +74,6 @@ void net::Socket::_init(int fd, bool allowHalfOpen, bool startReading)
 
     spSocketEvent->SetFD(fd, m_bFlowing ? (unsigned int)IOEvent::IOEvents::IOEV_READ : 0);
     spSocketEvent->Attach();
-
-    if(startReading)
-        resume();
 }
 
 void net::Socket::_destroy(const Error *pErr, const std::function<void(const Error &err)> &cb)
