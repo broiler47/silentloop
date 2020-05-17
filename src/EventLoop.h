@@ -9,7 +9,6 @@
 
 #include "core/Event.h"
 #include "core/IOEvent.h"
-
-#include "core/Tineout.h"
+#include "core/Timer.h"
 
 #endif //EVENTLOOP_H_174CD232F1B04A8B90D315AC558FC54D

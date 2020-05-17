@@ -30,21 +30,24 @@ class EventLoop : public EventLoopBase
     protected:
         void _removeEvent(EventHandle hEvent) override;
         void _notifyIOStateChange(EventHandle hEvent) override;
-        void _setTimeout(EventHandle hEvent, TimeInterval timeout) override;
-        void _cancelTimeout(EventHandle hEvent) override;
+        void _setTimer(EventHandle hEvent, TimeInterval timeout, bool bPeriodic) override;
+        void _cancelTimer(EventHandle hEvent) override;
 
     private:
         bool _tick(void);
         bool _isRegistered(EventHandle hEvent);
         void _processPendingRemovals(void);
         bool _updateIOFD(EventHandle hEvent);
-        void _removeFromTimeoutQueue(EventHandle hEvent);
+        void _removeFromTimerQueue(EventHandle hEvent);
+        void _clearTimerFlags(EventHandle hEvent);
+        void _updateTimePoint(void);
 
     private:
         enum _eventFlags : unsigned int
         {
-            EVF_TIMEOUT_SET = 0x01,
-            EVF_DETACHED    = 0x02
+            EVF_TIMER_SET       = 0x01,
+            EVF_TIMER_PERIODIC  = 0x02,
+            EVF_DETACHED        = 0x04
         };
 
         struct _eventInfo
@@ -53,6 +56,7 @@ class EventLoop : public EventLoopBase
                 spEvent(sp),
                 itEvent(),
                 pEventLoop(pEL),
+                tpTimeout(),
                 tpNextTimeout(),
                 flags(0),
                 fdRegistered(-1),
@@ -62,6 +66,7 @@ class EventLoop : public EventLoopBase
             std::shared_ptr<Event> spEvent;
             std::list<std::unique_ptr<_eventInfo>>::iterator itEvent;
             EventLoop *pEventLoop;
+            std::chrono::milliseconds tpTimeout;
             std::chrono::time_point<std::chrono::steady_clock> tpNextTimeout;
             unsigned int flags;
             int fdRegistered;
@@ -100,8 +105,9 @@ class EventLoop : public EventLoopBase
         std::function<void(void)> m_cbEvMain;
         std::list<std::unique_ptr<_eventInfo>> m_lstEvents;
         std::vector<EventHandle> m_vecRMPending;
-        ELTimerQueueComparator::TimerQueue m_qTimeouts;
+        ELTimerQueueComparator::TimerQueue m_qTimers;
         std::shared_ptr<IOMuxBase> m_spIOMux;
+        std::chrono::steady_clock::time_point m_tNow;
 };
 
 #endif //EVENTLOOP_H_021BAF9BC98F45CD80DD6D0B2B2366D8

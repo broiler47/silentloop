@@ -44,20 +44,20 @@ void Event::Detach(void)
     m_pEL->_removeEvent(m_handle);
 }
 
-void Event::SetTimeout(EventLoopBase::TimeInterval timeout)
+void Event::SetTimer(EventLoopBase::TimeInterval timeout, bool bPeriodic)
 {
     assert(m_pEL);
     assert(m_handle);
 
-    m_pEL->_setTimeout(m_handle, timeout);
+    m_pEL->_setTimer(m_handle, timeout, bPeriodic);
 }
 
-void Event::CancelTimeout(void)
+void Event::CancelTimer(void)
 {
     assert(m_pEL);
     assert(m_handle);
 
-    m_pEL->_cancelTimeout(m_handle);
+    m_pEL->_cancelTimer(m_handle);
 }
 
 bool Event::_isAttached(void) const

@@ -33,8 +33,8 @@ class EventLoopBase
     protected:
         virtual void _removeEvent(EventHandle hEvent) = 0;
         virtual void _notifyIOStateChange(EventHandle hEvent) = 0;
-        virtual void _setTimeout(EventHandle hEvent, TimeInterval timeout) = 0;
-        virtual void _cancelTimeout(EventHandle hEvent) = 0;
+        virtual void _setTimer(EventHandle hEvent, TimeInterval timeout, bool bPeriodic) = 0;
+        virtual void _cancelTimer(EventHandle hEvent) = 0;
 
     protected:
         void _drainNextTickQueue(void);

@@ -14,7 +14,7 @@ class Event : public EventEmitter
 {
     friend class EventLoop;
 
-    EXPORT_EVENT(timeout)
+    EXPORT_EVENT(timer)
     EXPORT_EVENT(error, const Error& err)
 
     public:
@@ -29,14 +29,13 @@ class Event : public EventEmitter
     public:
         void Attach(void);
         void Detach(void);
-        void SetTimeout(EventLoopBase::TimeInterval timeout);
-        void CancelTimeout(void);
+        void SetTimer(EventLoopBase::TimeInterval timeout, bool bPeriodic);
+        void CancelTimer(void);
         virtual int GetFD(void) const { return -1; }
         virtual unsigned int GetIOEventMask(void) const { return 0; }
 
     protected:
-        virtual void OnTimeout(void) { EMIT_EVENT(timeout); }
-        //virtual void OnInterval(void) {}
+        virtual void OnTimer(void) { EMIT_EVENT(timer); }
         //virtual void OnImmediate(void) {}
         virtual void OnRead(void) {}
         virtual void OnWrite(void) {}

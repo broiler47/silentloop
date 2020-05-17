@@ -18,8 +18,8 @@ add_executable(silentloop
         src/core/EventLoopBase.h
         src/core/EventLoopBase.cpp
         src/Utils.h
-        src/core/Tineout.h
-        src/core/Tineout.cpp
+        src/core/Timer.h
+        src/core/Timer.cpp
         src/core/io_mux/IOMuxBase.h
         src/core/io_mux/IOMux_epoll.h
         src/core/io_mux/IOMux_epoll.cpp

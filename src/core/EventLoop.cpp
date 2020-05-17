@@ -50,6 +50,8 @@ bool EventLoop::Add(const std::shared_ptr<Event> &spEvent)
 
 void EventLoop::Run(void)
 {
+    _updateTimePoint();
+
     if(m_cbEvMain)
         CATCH_ALL(m_cbEvMain());
 
@@ -68,7 +70,7 @@ void EventLoop::_removeEvent(EventLoopBase::EventHandle hEvent)
         return;
     }
 
-    _removeFromTimeoutQueue(hEvent);
+    _removeFromTimerQueue(hEvent);
 
     m_vecRMPending.push_back(hEvent);
 
@@ -94,49 +96,50 @@ void EventLoop::_notifyIOStateChange(EventLoopBase::EventHandle hEvent)
     _updateIOFD(hEvent);
 }
 
-void EventLoop::_setTimeout(EventLoopBase::EventHandle hEvent, EventLoopBase::TimeInterval timeout)
+void EventLoop::_setTimer(EventLoopBase::EventHandle hEvent, EventLoopBase::TimeInterval timeout, bool bPeriodic)
 {
     assert(hEvent);
 
     if(!_isRegistered(hEvent))
     {
-        ERROR("Attempting to set timeout from unregistered event");
+        ERROR("Attempting to set timer from unregistered event");
         return;
     }
 
     auto pEventInfo = (_eventInfo *)hEvent;
 
-    if(pEventInfo->flags & EVF_TIMEOUT_SET)
+    if(pEventInfo->flags & EVF_TIMER_SET)
     {
-        ERROR("Event timeout is already set");
+        ERROR("Event timeor is already set");
         return;
     }
 
-    pEventInfo->tpNextTimeout = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
-    pEventInfo->flags |= EVF_TIMEOUT_SET;
+    pEventInfo->tpTimeout = std::chrono::milliseconds(timeout);
+    pEventInfo->tpNextTimeout = m_tNow + pEventInfo->tpTimeout;
+    pEventInfo->flags |= EVF_TIMER_SET | (bPeriodic ? EVF_TIMER_PERIODIC : 0);
 
-    m_qTimeouts.push(hEvent);
+    m_qTimers.push(hEvent);
 }
 
-void EventLoop::_cancelTimeout(EventLoopBase::EventHandle hEvent)
+void EventLoop::_cancelTimer(EventLoopBase::EventHandle hEvent)
 {
     assert(hEvent);
 
     if(!_isRegistered(hEvent))
     {
-        ERROR("Attempting to cancel timeout from unregistered event");
+        ERROR("Attempting to cancel timer from unregistered event");
         return;
     }
 
     auto pEventInfo = (_eventInfo *)hEvent;
 
-    if(!(pEventInfo->flags & EVF_TIMEOUT_SET))
+    if(!(pEventInfo->flags & EVF_TIMER_SET))
     {
-        ERROR("Event timeout was not set");
+        ERROR("Event timer was not set");
         return;
     }
 
-    _removeFromTimeoutQueue(hEvent);
+    _removeFromTimerQueue(hEvent);
 }
 
 bool EventLoop::_isRegistered(EventLoopBase::EventHandle hEvent)
@@ -150,17 +153,24 @@ bool EventLoop::_isRegistered(EventLoopBase::EventHandle hEvent)
 bool EventLoop::_tick(void)
 {
     // Phase 1: Run timers
-    auto now = std::chrono::steady_clock::now();
+    _updateTimePoint();
 
-    while(!m_qTimeouts.empty())
+    while(!m_qTimers.empty())
     {
-        auto pEventInfo = (_eventInfo *)m_qTimeouts.top();
-        if(pEventInfo->tpNextTimeout <= now)
+        auto pEventInfo = (_eventInfo *)m_qTimers.top();
+        if(pEventInfo->tpNextTimeout <= m_tNow)
         {
-            m_qTimeouts.pop();
+            m_qTimers.pop();
 
-            pEventInfo->flags &= ~EVF_TIMEOUT_SET;
-            CATCH_ALL(pEventInfo->spEvent->OnTimeout());
+            if(pEventInfo->flags & EVF_TIMER_PERIODIC)
+            {
+                pEventInfo->tpNextTimeout = m_tNow + pEventInfo->tpTimeout;
+                m_qTimers.push(pEventInfo);
+            }
+            else
+                _clearTimerFlags(pEventInfo);
+
+            CATCH_ALL(pEventInfo->spEvent->OnTimer());
         }
         else
             break;
@@ -169,12 +179,12 @@ bool EventLoop::_tick(void)
     _processPendingRemovals();
 
     // Phase 2: Poll file descriptors for IO events
-    now = std::chrono::steady_clock::now();
+    _updateTimePoint();
 
     int nTimeout = m_lstEvents.empty() ? 0 : -1;
-    if(!m_qTimeouts.empty())
+    if(!m_qTimers.empty())
     {
-        auto tSleep = std::chrono::duration_cast<std::chrono::milliseconds>(((_eventInfo *)m_qTimeouts.top())->tpNextTimeout - now).count();
+        auto tSleep = std::chrono::duration_cast<std::chrono::milliseconds>(((_eventInfo *)m_qTimers.top())->tpNextTimeout - m_tNow).count();
         if(tSleep >= 0)
             nTimeout = tSleep > INT_MAX ? INT_MAX : int(tSleep);
         else
@@ -261,14 +271,25 @@ bool EventLoop::_updateIOFD(EventLoopBase::EventHandle hEvent)
     return true;
 }
 
-void EventLoop::_removeFromTimeoutQueue(EventLoopBase::EventHandle hEvent)
+void EventLoop::_removeFromTimerQueue(EventLoopBase::EventHandle hEvent)
 {
     auto pEventInfo = (_eventInfo *)hEvent;
 
-    if(!(pEventInfo->flags & EVF_TIMEOUT_SET))
+    if(!(pEventInfo->flags & EVF_TIMER_SET))
         return;
 
-    pEventInfo->flags &= ~EVF_TIMEOUT_SET;
+    _clearTimerFlags(hEvent);
 
-    m_qTimeouts.Remove(hEvent);
+    m_qTimers.Remove(hEvent);
+}
+
+void EventLoop::_clearTimerFlags(EventLoopBase::EventHandle hEvent)
+{
+    auto pEventInfo = (_eventInfo *)hEvent;
+    pEventInfo->flags &= ~(EVF_TIMER_SET | EVF_TIMER_PERIODIC);
+}
+
+void EventLoop::_updateTimePoint(void)
+{
+    m_tNow = std::chrono::steady_clock::now();
 }

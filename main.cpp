@@ -5,6 +5,8 @@
 #include "modules/net/Server.h"
 #include "modules/http/Server.h"
 
+static unsigned int nReqests = 0;
+
 static void _timersTest(void)
 {
     INFO("~~~ Timers ~~~");
@@ -12,6 +14,11 @@ static void _timersTest(void)
     SetTimeout([](){
         INFO("Hello, World!");
     }, 3000);
+
+    SetInterval([](void) {
+        INFO("Requests/sec: %u", nReqests);
+        nReqests = 0;
+    }, 1000);
 }
 
 static void _tcpServerTest(void)
@@ -101,16 +108,6 @@ static void _httpServerTest(void)
     spServer->on_close([](void) {
         INFO("HTTP: Server socket closed");
     });
-
-    static unsigned int nReqests = 0;
-    static std::function<void(void)> cbStats = [](void) {
-        INFO("HTTP Requests/sec: %u", nReqests);
-        nReqests = 0;
-
-        // Use SetTimeout() here because SetInterval() is not yet implemented.
-        SetTimeout(cbStats, 1000);
-    };
-    cbStats();
 
     spServer->on_connection([](const std::shared_ptr<net::Socket>& spSocket) {
         UNUSED_ARG(spSocket);
