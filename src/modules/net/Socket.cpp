@@ -149,9 +149,14 @@ void net::Socket::_doRead(void)
 
     for(;!m_bHUP;)
     {
+#if SOCKET_READ_BUF_SIZE <= 0x10000
+        uint8_t rdBuf[SOCKET_READ_BUF_SIZE];
+#else
         std::vector<uint8_t> vecBuf(SOCKET_READ_BUF_SIZE);
+        auto rdBuf = vecBuf.data();
+#endif
 
-        auto nRead = TEMP_FAILURE_RETRY(read(spSocketEvent->GetFD(), vecBuf.data(), vecBuf.size()));
+        auto nRead = TEMP_FAILURE_RETRY(read(spSocketEvent->GetFD(), rdBuf, SOCKET_READ_BUF_SIZE));
         if(nRead < 0)
         {
             if(!IS_WOULDBLOCK(errno))
@@ -163,7 +168,7 @@ void net::Socket::_doRead(void)
             break;
         }
 
-        if(!_push(vecBuf.data(), nRead))
+        if(!_push(rdBuf, nRead))
             spSocketEvent->ClearIOEventFlag(IOEvent::IOEvents::IOEV_READ);
 
         if(nRead == 0)

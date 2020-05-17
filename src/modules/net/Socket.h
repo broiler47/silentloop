@@ -10,7 +10,7 @@
 namespace net
 {
 
-#define SOCKET_READ_BUF_SIZE 65536
+#define SOCKET_READ_BUF_SIZE 0x10000
 
 class Socket : public stream::Duplex
 {
