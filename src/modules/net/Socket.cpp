@@ -96,7 +96,6 @@ void net::Socket::_write(void)
 
 void net::Socket::_read(void)
 {
-    m_bReading = true;
     _doRead();
 }
 
@@ -158,17 +157,14 @@ void net::Socket::_doRead(void)
             if(!IS_WOULDBLOCK(errno))
                 EMIT_EVENT(error, SystemError("read() failed", errno));
 
-            if(m_bReading)
+            if(m_bFlowing)
                 spSocketEvent->SetIOEventFlag(IOEvent::IOEvents::IOEV_READ);
 
             break;
         }
 
         if(!_push(vecBuf.data(), nRead))
-        {
-            m_bReading = false;
             spSocketEvent->ClearIOEventFlag(IOEvent::IOEvents::IOEV_READ);
-        }
 
         if(nRead == 0)
         {

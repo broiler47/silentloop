@@ -42,7 +42,6 @@ class Socket : public stream::Duplex
         bool m_bAllowHalfOpen = false;
         bool m_bHUP = false;
         bool m_bWRShutdown = false;
-        bool m_bReading = false;
 };
 
 }   // namespace net
