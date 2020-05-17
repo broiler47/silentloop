@@ -10,6 +10,9 @@
 #include <functional>
 #include <vector>
 
+#define EXPORT_EVENT_SIGNATURE(name, ...)   \
+    void on_##name(const std::function<void(__VA_ARGS__)>& cb)
+
 #define EXPORT_EVENT(name, ...)                                             \
     public:                                                                 \
         void on_##name(const std::function<void(__VA_ARGS__)>& cb)          \

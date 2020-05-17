@@ -5,26 +5,25 @@
 #ifndef TINEOUT_H_CCE767453DE64C5C8E8E6E324C0DC2A7
 #define TINEOUT_H_CCE767453DE64C5C8E8E6E324C0DC2A7
 
-#include "EventEmitter.h"
-#include "Linkable.h"
-#include "EventLoopBase.h"
+#include "Event.h"
 
-class Timeout : public EventEmitter
+class Timeout
 {
-    EXPORT_EVENT(timeout)
-
     public:
         static std::shared_ptr<Timeout> CreateShared(void);
 
+    public:
+        EXPORT_EVENT_SIGNATURE(timeout) { m_spEventObj->on_timeout(cb); }
+
     private:
-        Timeout(void) = default;
+        Timeout(void);
 
     public:
         void Refresh(EventLoopBase::TimeInterval timeout);
         void Cancel(void);
 
     private:
-        std::weak_ptr<Event> m_wpEvent;
+        std::shared_ptr<Event> m_spEventObj;
 };
 
 std::shared_ptr<Timeout> SetTimeout(const std::function<void(void)>& cb, EventLoopBase::TimeInterval timeout);

@@ -207,6 +207,7 @@ bool EventLoop::_tick(void)
 
     _processPendingRemovals();
 
+    // Phase 3: Run setImmediate() callbacks
     // TODO: Implement
 
     return !m_lstEvents.empty();

@@ -4,8 +4,6 @@
 
 #include "Tineout.h"
 
-#include "Event.h"
-
 std::shared_ptr<Timeout> Timeout::CreateShared(void)
 {
     struct make_shared_enabler : public Timeout {};
@@ -13,32 +11,26 @@ std::shared_ptr<Timeout> Timeout::CreateShared(void)
     return std::make_shared<make_shared_enabler>();
 }
 
+Timeout::Timeout(void) :
+    m_spEventObj(Event::CreateShared())
+{
+    auto pEvent = m_spEventObj.get();
+    m_spEventObj->on_timeout([pEvent](void) {
+        pEvent->Detach();
+    });
+}
+
 void Timeout::Refresh(EventLoopBase::TimeInterval timeout)
 {
     Cancel();
 
-    auto spEvent = Event::CreateShared();
-    m_wpEvent = spEvent;
-
-    spEvent->Attach();
-
-    LinkWith(spEvent);
-
-    spEvent->on_timeout([this](void) {
-        Cancel();
-        EMIT_EVENT(timeout);
-    });
-
-    spEvent->SetTimeout(timeout);
+    m_spEventObj->Attach();
+    m_spEventObj->SetTimeout(timeout);
 }
 
 void Timeout::Cancel(void)
 {
-    auto spEvent = m_wpEvent.lock();
-    if(!spEvent)
-        return;
-
-    spEvent->Detach();
+    m_spEventObj->Detach();
 }
 
 std::shared_ptr<Timeout> SetTimeout(const std::function<void(void)> &cb, EventLoopBase::TimeInterval timeout)
