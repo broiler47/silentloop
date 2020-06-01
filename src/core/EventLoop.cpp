@@ -116,7 +116,7 @@ void EventLoop::_setTimer(EventLoopBase::EventHandle hEvent, EventLoopBase::Time
 
     pEventInfo->tpTimeout = std::chrono::milliseconds(timeout);
     pEventInfo->tpNextTimeout = m_tNow + pEventInfo->tpTimeout;
-    pEventInfo->flags |= EVF_TIMER_SET | (bPeriodic ? EVF_TIMER_PERIODIC : 0);
+    pEventInfo->flags |= EVF_TIMER_SET | (bPeriodic ? (unsigned int) EVF_TIMER_PERIODIC : 0);
 
     m_qTimers.push(hEvent);
 }
