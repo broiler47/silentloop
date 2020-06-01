@@ -22,8 +22,7 @@ Timeout::Timeout(bool bPeriodic) :
 {
     if(!m_bPeriodic)
     {
-        auto pEvent = m_spEventObj.get();
-        on_timeout([pEvent](void) {
+        on_timeout([pEvent = m_spEventObj.get()](void) {
             pEvent->Detach();
         });
     }
