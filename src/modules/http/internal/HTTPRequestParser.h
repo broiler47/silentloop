@@ -42,15 +42,19 @@ class HTTPRequestParser : public SyncEventEmitter
         void _bodyEnd(void);
 
     public:
+        int m_nHttpMajor;
+        int m_nHttpMinor;
         std::string m_strMethod;
         std::string m_strURL;
         std::vector<std::string> m_vecRawHeaders;
+        std::vector<std::string> m_vecRawTrailers;
 
     private:
         http_parser m_httpParser;
         http_parser_settings m_httpParserSettings;
         std::string m_strCurHdr;
         bool m_bHdrVal = true;
+        bool m_bTrailers = false;
 };
 
 }   // namespace http::internal

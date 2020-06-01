@@ -47,8 +47,7 @@ static void _tcpServerTest(void)
     // event handler callbacks is not a good idea since it will create
     // a circular dependency and as a result a potential event object
     // leaks. One possible workaround is to capture raw event object pointer.
-    auto pServer = spServer.get();
-    spServer->on_connection([pServer](const std::shared_ptr<net::Socket>& spSocket) {
+    spServer->on_connection([pServer = spServer.get()](const std::shared_ptr<net::Socket>& spSocket) {
         DEBUG("TCP: Incoming connection");
 
         pServer->Close();
@@ -59,8 +58,7 @@ static void _tcpServerTest(void)
             ERROR("TCP socket error: %s", err.Format());
         });
 
-        auto pSocket = spSocket.get();
-        spSocket->on_data([pSocket](const std::vector<uint8_t>& data) {
+        spSocket->on_data([pSocket = spSocket.get()](const std::vector<uint8_t>& data) {
             DEBUG("TCP: Client: %s", std::string(data.begin(), data.end()).c_str());
 
             pSocket->write("You've sent me: ");
@@ -68,7 +66,7 @@ static void _tcpServerTest(void)
             pSocket->end("Goodbye!\n");
         });
 
-        spSocket->on_drain([pSocket](void) {
+        spSocket->on_drain([pSocket = spSocket.get()](void) {
             DEBUG("TCP socket write stream drained");
             //pSocket->end("Goodbye!\n");
         });
@@ -111,7 +109,9 @@ static void _httpServerTest(void)
 
     spServer->on_connection([](const std::shared_ptr<net::Socket>& spSocket) {
         UNUSED_ARG(spSocket);
+
         //DEBUG("HTTP: Incoming connection");
+
         ++nReqests;
     });
 
@@ -125,10 +125,54 @@ static void _httpServerTest(void)
     });
 
     spServer->on_request([](const std::shared_ptr<http::IncomingMessage>& request, const std::shared_ptr<http::ServerResponse>& response) {
-        DEBUG("HTTP: Incoming request");
+        DEBUG("HTTP: Incoming request: HTTP %s", request->getHttpVersion().c_str());
 
-        UNUSED_ARG(request);
-        UNUSED_ARG(response);
+        struct _serverContext
+        {
+            // It is also safe to save std::shared_ptr of response object here.
+            //std::shared_ptr<http::ServerResponse> response;
+            std::string body;
+        };
+        auto spContext = std::make_shared<_serverContext>();
+        //spContext->response = response;
+
+        request->on_error([](const Error& err) {
+            ERROR("HTTP IncomingMessage error: %s", err.Format());
+        });
+
+        request->on_close([](void) {
+            DEBUG("HTTP IncomingMessage closed");
+        });
+
+        request->on_data([spContext](const std::vector<uint8_t>& vecData) {
+            DEBUG("HTTP IncomingMessage data");
+            spContext->body.append(vecData.data(), vecData.data() + vecData.size());
+        });
+
+        request->on_end([spContext, response](void) {
+            DEBUG("HTTP IncomingMessage end");
+
+            response->setHeader("Hello", "World");
+
+            response->write("Request body: ");
+            response->end(spContext->body);
+        });
+
+        response->on_error([](const Error& err) {
+            DEBUG("HTTP ServerResponse error: %s", err.Format());
+        });
+
+        response->on_close([](void) {
+            DEBUG("HTTP ServerResponse closed");
+        });
+
+        response->on_drain([](void) {
+            DEBUG("HTTP ServerResponse drain");
+        });
+
+        response->on_finish([](void) {
+            DEBUG("HTTP ServerResponse finish");
+        });
     });
 
 //    const char *strTestReq = "GET / HTTP/1.1\r\n"
@@ -149,6 +193,7 @@ static void _httpServerTest(void)
 //                             "7\r\n"
 //                             "Network\r\n"
 //                             "0\r\n"
+//                             "Test: Trailer\r\n"
 //                             "\r\n";
 //
 //    http::internal::HTTPRequestParser parser;
@@ -157,8 +202,6 @@ static void _httpServerTest(void)
 
 static void _ev_main(void)
 {
-    INFO("<=== START ===>");
-
     _timersTest();
     _tcpServerTest();
     _httpServerTest();

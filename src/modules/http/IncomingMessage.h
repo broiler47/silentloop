@@ -28,10 +28,12 @@ class IncomingMessage : public stream::Readable
         //bool isAborted(void);
         bool isComplete(void) const { return m_bCompleted; }
         //??? getHeaders(void);
-        //std::string getHttpVersion(void);
+        std::string getHttpVersion(void) const { return std::to_string(m_parser.m_nHttpMajor) + "." + std::to_string(m_parser.m_nHttpMinor); }
+        int getHttpVersionMajor(void) const { return m_parser.m_nHttpMajor; }
+        int getHttpVersionMinor(void) const { return m_parser.m_nHttpMinor; }
         std::string getMethod(void) const { return m_parser.m_strMethod; }
-        std::vector<std::string> getRawHeaders(void) const { return m_parser.m_vecRawHeaders; }
-        //??? getRawTrailers(void);
+        const std::vector<std::string>& getRawHeaders(void) const { return m_parser.m_vecRawHeaders; }
+        const std::vector<std::string>& getRawTrailers(void) const { return m_parser.m_vecRawTrailers; }
         //??? getTrailers(void);
         //setTimeout
         std::string getURL(void) const { return m_parser.m_strURL; }

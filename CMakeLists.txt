@@ -59,4 +59,6 @@ add_executable(silentloop
         src/modules/http/internal/http_parser.h
         src/modules/http/internal/http_parser.c
         src/modules/http/internal/HTTPRequestParser.h
-        src/modules/http/internal/HTTPRequestParser.cpp)
+        src/modules/http/internal/HTTPRequestParser.cpp
+        src/modules/http/StatusCodes.h
+        src/modules/http/StatusCodes.cpp)

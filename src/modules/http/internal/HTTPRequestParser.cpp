@@ -71,6 +71,8 @@ int http::internal::HTTPRequestParser::_on_headers_complete(http_parser *parser)
 {
     auto pThis = (HTTPRequestParser *)parser->data;
     pThis->_processHdr(false, nullptr, 0);
+    pThis->m_nHttpMajor = parser->http_major;
+    pThis->m_nHttpMinor = parser->http_minor;
     pThis->m_strMethod = http_method_str((http_method)parser->method);
     pThis->_headersComplete();
     return 0;
@@ -86,27 +88,34 @@ int http::internal::HTTPRequestParser::_on_body(http_parser *parser, const char 
 int http::internal::HTTPRequestParser::_on_message_complete(http_parser *parser)
 {
     auto pThis = (HTTPRequestParser *)parser->data;
+    pThis->_processHdr(false, nullptr, 0);
     pThis->_bodyEnd();
     return 0;
 }
 
 void http::internal::HTTPRequestParser::_reset(void)
 {
+    m_nHttpMajor = 0;
+    m_nHttpMinor = 0;
     m_strMethod.clear();
     m_strURL.clear();
     m_vecRawHeaders.clear();
+    m_vecRawTrailers.clear();
     m_strCurHdr.clear();
     m_bHdrVal = true;
+    m_bTrailers = false;
 }
 
 void http::internal::HTTPRequestParser::_processHdr(bool bVal, const char *at, size_t length)
 {
     if(m_bHdrVal != bVal)
     {
+        auto &rContainer = m_bTrailers ? m_vecRawTrailers : m_vecRawHeaders;
+
         // Even though header value could be an empty string, header should always have a name
-        if(!(m_vecRawHeaders.empty() && m_strCurHdr.empty()))
+        if(!(rContainer.empty() && m_strCurHdr.empty()))
         {
-            m_vecRawHeaders.push_back(m_strCurHdr);
+            rContainer.push_back(m_strCurHdr);
             m_strCurHdr.clear();
         }
 
@@ -116,6 +125,11 @@ void http::internal::HTTPRequestParser::_processHdr(bool bVal, const char *at, s
     // End condition - there will be no more headers
     if(at)
         m_strCurHdr.append(at, length);
+    else
+    {
+        m_bHdrVal = true;
+        m_bTrailers = true;
+    }
 }
 
 void http::internal::HTTPRequestParser::_headersComplete(void)
