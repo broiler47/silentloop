@@ -30,12 +30,8 @@ bool stream::Writable::write(const void *buf, size_t size)
 
     bool res = m_wrBuffer.empty();
 
-    if(!size)
-        return res;
-
-    assert(buf);
-
-    m_wrBuffer.insert(m_wrBuffer.end(), (uint8_t *)buf, (uint8_t *)buf + size);
+    if(buf)
+        m_wrBuffer.insert(m_wrBuffer.end(), (uint8_t *)buf, (uint8_t *)buf + size);
 
     if(!m_bWrNotified)
     {
@@ -64,8 +60,7 @@ void stream::Writable::end(const void *buf, size_t size)
         return;
     }
 
-    if(size)
-        write(buf, size);
+    write(buf, size);
 
     m_bFinish = true;
 }
