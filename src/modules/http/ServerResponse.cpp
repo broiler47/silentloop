@@ -103,6 +103,9 @@ void http::ServerResponse::_write(void)
     }
 
     spSocket->write(m_wrBuffer);
+
+    // Just clear the buffer here. _onDrained() should be called from socket's on_drain event handler.
+    m_wrBuffer.clear();
 }
 
 const std::string& http::ServerResponse::_getStatusMessage(void) const
