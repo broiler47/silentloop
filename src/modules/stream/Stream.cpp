@@ -9,7 +9,8 @@ void stream::Stream::destroy(const Error *pErr)
     if(m_bDestroyed)
         return;
 
-    EMIT_EVENT_ASYNC(error, *pErr);
+    if(pErr)
+        EMIT_EVENT_ASYNC(error, *pErr);
 
     _destroy(pErr, [this](const Error& err) {
         EMIT_EVENT_ASYNC(error, err);
