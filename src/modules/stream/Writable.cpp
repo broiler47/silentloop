@@ -75,7 +75,8 @@ bool stream::Writable::_onDrained(void)
     return m_bFinish;
 }
 
-void stream::Writable::_onWriteError(void)
+void stream::Writable::_onWriteError(const Error& err)
 {
     m_bWriteError = true;
+    EMIT_EVENT(error, err);
 }
