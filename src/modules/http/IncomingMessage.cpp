@@ -27,6 +27,8 @@ void http::IncomingMessage::_init(const std::shared_ptr<net::Socket> &spSocket,
 
     LinkWith(spSocket);
 
+    resume();
+
     spSocket->on_data([this](const std::vector<uint8_t>& vecData) {
         if(!m_bParserError)
             m_parser.Feed(vecData);
