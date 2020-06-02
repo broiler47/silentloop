@@ -88,7 +88,7 @@ void http::IncomingMessage::_destroy(const Error *pErr, const std::function<void
     auto spSocket = m_wpSocket.lock();
     assert(spSocket);
 
-    spSocket->destroy(*pErr);
+    spSocket->destroy(pErr);
 }
 
 void http::IncomingMessage::_read(void)
