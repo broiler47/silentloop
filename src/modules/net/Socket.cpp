@@ -111,7 +111,7 @@ void net::Socket::_doWrite(void)
             if(!m_bWRShutdown && _onDrained())
             {
                 if(shutdown(spSocketEvent->GetFD(), SHUT_WR) < 0)
-                    EMIT_EVENT(error, SystemError("shutdown() failed", errno));
+                    _onWriteError(SystemError("shutdown() failed", errno));
 
                 m_bWRShutdown = true;
             }
