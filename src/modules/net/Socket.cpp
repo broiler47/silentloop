@@ -57,7 +57,7 @@ void net::Socket::_init(int fd, bool allowHalfOpen, bool startReading)
     });
 
     spSocketEvent->on_close([this](void) {
-        EMIT_EVENT(close);
+        destroy();
     });
 
     spSocketEvent->on_read([this](void) {
@@ -117,7 +117,7 @@ void net::Socket::_doWrite(void)
             }
 
             if(m_bHUP && !m_bAllowHalfOpen)
-                spSocketEvent->Close();
+                destroy();
             else
                 spSocketEvent->ClearIOEventFlag(IOEvent::IOEvents::IOEV_WRITE);
 
