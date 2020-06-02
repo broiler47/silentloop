@@ -48,8 +48,6 @@ class Writable : public virtual Stream
 
     protected:
         // Notifies the stream that all data from m_wrBuffer is fully processed.
-        // Should not be called when there is any data left in m_wrBuffer - implementation
-        // must check this condition before invoking _onDrained().
         // Returns true if stream is in "finished" state, otherwise - false.
         // Finished state means that there will be no new data in m_wrBuffer and no more
         // calls to _write(). Implementation may choose to gracefully free it's allocated
@@ -59,6 +57,9 @@ class Writable : public virtual Stream
         // Notifies the stream about irrecoverable error condition.
         // No more writes to the stream will be possible after calling this function.
         void _onWriteError(const Error& err);
+
+    private:
+        void _notifyWrite(void);
 
     protected:
         std::vector<uint8_t> m_wrBuffer;

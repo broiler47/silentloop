@@ -33,15 +33,7 @@ bool stream::Writable::write(const void *buf, size_t size)
     if(buf)
         m_wrBuffer.insert(m_wrBuffer.end(), (uint8_t *)buf, (uint8_t *)buf + size);
 
-    if(!m_bWrNotified)
-    {
-        m_bWrNotified = true;
-
-        NextTick([this](void) {
-            m_bWrNotified = false;
-            _write();
-        });
-    }
+    _notifyWrite();
 
     return res;
 }
@@ -67,6 +59,12 @@ void stream::Writable::end(const void *buf, size_t size)
 
 bool stream::Writable::_onDrained(void)
 {
+    if(!m_wrBuffer.empty())
+    {
+        _notifyWrite();
+        return false;
+    }
+
     if(m_bFinish)
         EMIT_EVENT_ASYNC0(finish);
     else
@@ -79,4 +77,17 @@ void stream::Writable::_onWriteError(const Error& err)
 {
     m_bWriteError = true;
     EMIT_EVENT(error, err);
+}
+
+void stream::Writable::_notifyWrite(void)
+{
+    if(!m_bWrNotified)
+    {
+        m_bWrNotified = true;
+
+        NextTick([this](void) {
+            m_bWrNotified = false;
+            _write();
+        });
+    }
 }
