@@ -46,6 +46,7 @@ class Readable : public virtual Stream
         std::vector<uint8_t> m_rdBuffer;
         bool m_bFlowing = false;
         bool m_bEnded = false;
+        bool m_bEndEmitted = false;
 };
 
 }   // namespace stream

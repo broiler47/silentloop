@@ -45,22 +45,29 @@ bool stream::Readable::_push(const void *buf, size_t size)
         assert(buf);
 
         m_rdBuffer.insert(m_rdBuffer.end(), (uint8_t *)buf, (uint8_t *)buf + size);
-        _emitData();
     }
     else
-    {
         m_bEnded = true;
-        EMIT_EVENT(end);
-    }
+
+    _emitData();
 
     return m_bFlowing;
 }
 
 void stream::Readable::_emitData(void)
 {
-    if(m_bFlowing && !m_bDestroyed && !m_rdBuffer.empty())
+    if(!m_bFlowing || m_bDestroyed || m_bEndEmitted)
+        return;
+
+    if(!m_rdBuffer.empty())
     {
         EMIT_EVENT(data, m_rdBuffer);
         m_rdBuffer.clear();
+    }
+
+    if(m_bEnded)
+    {
+        EMIT_EVENT(end);
+        m_bEndEmitted = true;
     }
 }
