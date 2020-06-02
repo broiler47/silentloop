@@ -47,6 +47,9 @@ class Readable : public virtual Stream
         // if this function was called when stream is not in the readable state.
         bool _push(const void* buf, size_t size);
 
+        // Notifies the stream about irrecoverable error condition while processing the data.
+        void _onReadError(const Error& err);
+
     private:
         void _emitData(void);
 

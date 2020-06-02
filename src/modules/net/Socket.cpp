@@ -157,7 +157,7 @@ void net::Socket::_doRead(void)
         if(nRead < 0)
         {
             if(!IS_WOULDBLOCK(errno))
-                EMIT_EVENT(error, SystemError("read() failed", errno));
+                _onReadError(SystemError("read() failed", errno));
 
             if(m_bFlowing)
                 spSocketEvent->SetIOEventFlag(IOEvent::IOEvents::IOEV_READ);

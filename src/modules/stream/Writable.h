@@ -54,7 +54,7 @@ class Writable : public virtual Stream
         // resources after detecting this condition.
         bool _onDrained(void);
 
-        // Notifies the stream about irrecoverable error condition.
+        // Notifies the stream about irrecoverable error condition while processing the data.
         // No more writes to the stream will be possible after calling this function.
         void _onWriteError(const Error& err);
 

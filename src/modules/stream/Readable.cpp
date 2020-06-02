@@ -54,6 +54,11 @@ bool stream::Readable::_push(const void *buf, size_t size)
     return m_bFlowing;
 }
 
+void stream::Readable::_onReadError(const Error &err)
+{
+    EMIT_EVENT(error, err);
+}
+
 void stream::Readable::_emitData(void)
 {
     if(!m_bFlowing || m_bDestroyed || m_bEndEmitted)

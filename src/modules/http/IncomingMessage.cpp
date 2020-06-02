@@ -50,7 +50,7 @@ void http::IncomingMessage::_init(const std::shared_ptr<net::Socket> &spSocket,
         pause();
         spSocket->pause();
 
-        EMIT_EVENT(error, Error(name, HTTP_PARSER_ERROR));
+        _onReadError(Error(name, HTTP_PARSER_ERROR));
     });
 
     m_parser.on_headers_complete([this](void) {
