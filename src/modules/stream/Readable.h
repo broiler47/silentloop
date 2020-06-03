@@ -14,9 +14,12 @@ class Readable : public virtual Stream
 {
     EXPORT_EVENT(data, const std::vector<uint8_t>& vecData)
     EXPORT_EVENT(end)
-        //EXPORT_EVENT(pause)
-        //EXPORT_EVENT(resume)
-        //EXPORT_EVENT(readable)
+    //EXPORT_EVENT(pause)
+    //EXPORT_EVENT(resume)
+    //EXPORT_EVENT(readable)
+
+    public:
+        Readable(size_t nHighWaterMark = 16 * 1024);
 
     public:
         //bool isPaused(void);
@@ -52,14 +55,17 @@ class Readable : public virtual Stream
 
     private:
         void _emitData(void);
+        void _notifyRead(void);
 
     protected:
         bool m_bFlowing = false;
+        size_t m_nReadableHighWaterMark;
 
     private:
         std::vector<uint8_t> m_rdBuffer;
         bool m_bEnded = false;
         bool m_bEndEmitted = false;
+        bool m_bBufferOverrun = false;
 };
 
 }   // namespace stream

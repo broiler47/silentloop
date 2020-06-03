@@ -18,6 +18,9 @@ class Writable : public virtual Stream
     //EXPORT_EVENT(unpipe)
 
     public:
+        Writable(size_t nWritableHighWaterMark = 16 * 1024);
+
+    public:
         //void cork(void);
         //void uncork(void);
         //int writableCorked(void);
@@ -65,6 +68,7 @@ class Writable : public virtual Stream
         std::vector<uint8_t> m_wrBuffer;
 
     private:
+        size_t m_nWritableHighWaterMark;
         bool m_bFinish = false;
         bool m_bWrNotified = false;
         bool m_bWriteError = false;

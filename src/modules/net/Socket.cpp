@@ -144,16 +144,21 @@ void net::Socket::_doRead(void)
     auto spSocketEvent = m_wpSocketEvent.lock();
     assert(spSocketEvent);
 
+    const size_t nRdBufSize = m_nReadableHighWaterMark;
+    uint8_t *rdBuf = nullptr;
+
+    std::vector<uint8_t> vecBuf;
+    if(nRdBufSize > SOCKET_READ_BUF_SIZE_STACK_LIMIT)
+    {
+        vecBuf.resize(nRdBufSize);
+        rdBuf = vecBuf.data();
+    }
+    else
+        rdBuf = (uint8_t *)alloca(nRdBufSize);
+
     for(;!m_bHUP;)
     {
-#if SOCKET_READ_BUF_SIZE <= 0x10000
-        uint8_t rdBuf[SOCKET_READ_BUF_SIZE];
-#else
-        std::vector<uint8_t> vecBuf(SOCKET_READ_BUF_SIZE);
-        auto rdBuf = vecBuf.data();
-#endif
-
-        auto nRead = TEMP_FAILURE_RETRY(read(spSocketEvent->GetFD(), rdBuf, SOCKET_READ_BUF_SIZE));
+        auto nRead = TEMP_FAILURE_RETRY(read(spSocketEvent->GetFD(), rdBuf, nRdBufSize));
         if(nRead < 0)
         {
             if(!IS_WOULDBLOCK(errno))

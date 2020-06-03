@@ -4,9 +4,13 @@
 
 #include "Readable.h"
 
-#include "modules/process/Process.h"
-
 #include <cassert>
+
+stream::Readable::Readable(size_t nHighWaterMark) :
+    m_nReadableHighWaterMark(nHighWaterMark)
+{
+    assert(m_nReadableHighWaterMark > 0);
+}
 
 void stream::Readable::pause(void)
 {
@@ -18,11 +22,7 @@ void stream::Readable::resume(void)
     if(!m_bFlowing && !m_bDestroyed)
     {
         m_bFlowing = true;
-
-        NextTick([this]() {
-            _read();
-            _emitData();
-        });
+        _notifyRead();
     }
 }
 
@@ -51,7 +51,9 @@ bool stream::Readable::_push(const void *buf, size_t size)
 
     _emitData();
 
-    return m_bFlowing;
+    m_bBufferOverrun = m_rdBuffer.size() > m_nReadableHighWaterMark;
+
+    return m_bFlowing && !m_bBufferOverrun;
 }
 
 void stream::Readable::_onReadError(const Error &err)
@@ -68,6 +70,12 @@ void stream::Readable::_emitData(void)
     {
         EMIT_EVENT(data, m_rdBuffer);
         m_rdBuffer.clear();
+
+        if(m_bBufferOverrun)
+        {
+            m_bBufferOverrun = false;
+            _notifyRead();
+        }
     }
 
     if(m_bEnded)
@@ -75,4 +83,12 @@ void stream::Readable::_emitData(void)
         EMIT_EVENT(end);
         m_bEndEmitted = true;
     }
+}
+
+void stream::Readable::_notifyRead(void)
+{
+    NextTick([this]() {
+        _read();
+        _emitData();
+    });
 }

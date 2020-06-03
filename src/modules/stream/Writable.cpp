@@ -4,9 +4,13 @@
 
 #include "Writable.h"
 
-#include "modules/process/Process.h"
-
 #include <cassert>
+
+stream::Writable::Writable(size_t nWritableHighWaterMark) :
+    m_nWritableHighWaterMark(nWritableHighWaterMark)
+{
+    assert(m_nWritableHighWaterMark > 0);
+}
 
 bool stream::Writable::write(const void *buf, size_t size)
 {
@@ -28,14 +32,12 @@ bool stream::Writable::write(const void *buf, size_t size)
         return false;
     }
 
-    bool res = m_wrBuffer.empty();
-
     if(buf)
         m_wrBuffer.insert(m_wrBuffer.end(), (uint8_t *)buf, (uint8_t *)buf + size);
 
     _notifyWrite();
 
-    return res;
+    return m_wrBuffer.size() < m_nWritableHighWaterMark;
 }
 
 void stream::Writable::end(const void *buf, size_t size)
