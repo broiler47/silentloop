@@ -31,7 +31,7 @@ static void _tcpServerTest(void)
     spServer->Listen(nPort);
 
     spServer->on_error([](const Error& err) {
-        ERROR("TCP: Server error: %s", err.Format());
+        ERROR("TCP: Server error: %s", err.what());
         exit(1);
     });
 
@@ -55,7 +55,7 @@ static void _tcpServerTest(void)
         spSocket->setNoDelay();
 
         spSocket->on_error([](const Error& err) {
-            ERROR("TCP socket error: %s", err.Format());
+            ERROR("TCP socket error: %s", err.what());
         });
 
         spSocket->on_data([pSocket = spSocket.get()](const std::vector<uint8_t>& data) {
@@ -95,7 +95,7 @@ static void _httpServerTest(void)
     spServer->Listen(nPort);
 
     spServer->on_error([](const Error& err) {
-        ERROR("HTTP: Server error: %s", err.Format());
+        ERROR("HTTP: Server error: %s", err.what());
         exit(1);
     });
 
@@ -137,7 +137,7 @@ static void _httpServerTest(void)
         //spContext->response = response;
 
         request->on_error([](const Error& err) {
-            ERROR("HTTP IncomingMessage error: %s", err.Format());
+            ERROR("HTTP IncomingMessage error: %s", err.what());
         });
 
         request->on_close([](void) {
@@ -159,7 +159,7 @@ static void _httpServerTest(void)
         });
 
         response->on_error([](const Error& err) {
-            DEBUG("HTTP ServerResponse error: %s", err.Format());
+            DEBUG("HTTP ServerResponse error: %s", err.what());
         });
 
         response->on_close([](void) {

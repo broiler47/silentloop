@@ -6,6 +6,7 @@
 #define ERROR_H_23683DA7E6BC4F0F837BE39653E1123C
 
 #include <string>
+#include <stdexcept>
 
 enum ErrorCode
 {
@@ -20,10 +21,11 @@ enum ErrorCode
     _ERR_ERROR_CODE_MAX
 };
 
-class Error
+class Error : public std::runtime_error
 {
     public:
-        Error(const std::string& msg = "Unknown", ErrorCode err = ERR_SYSTEM_ERROR, int _errno = 0);
+        // TODO: May throw exceptions while copied
+        Error(const std::string& msg = "Unknown", ErrorCode err = ERR_SYSTEM_ERROR, int _errno = 0, const std::string& strErrTypeName = "Error");
 
     public:
         virtual ~Error(void) = default;
@@ -32,15 +34,16 @@ class Error
         ErrorCode GetCode(void) const { return m_errCode; }
         const char* GetMessage(void) const { return m_strMsg.c_str(); }
         int GetErrno(void) const { return m_nErrno; }
-        virtual const char* Format(void) const { return _format("Error"); };
+        const char* what(void) const noexcept override { return _format(); }
 
     protected:
-        const char* _format(const char* errTypeName) const;
+        const char* _format(void) const noexcept;
 
     private:
         std::string m_strMsg;
         ErrorCode m_errCode;
         int m_nErrno;
+        std::string m_strErrTypeName;
         mutable std::string m_strFormatted;
 };
 
@@ -48,20 +51,16 @@ class TypeError : public Error
 {
     public:
         TypeError(const std::string& msg = "Unknown", ErrorCode err = ERR_SYSTEM_ERROR) :
-            Error(msg, err)
+            Error(msg, err, 0, "TypeError")
         {}
-
-        const char* Format(void) const override { return _format("TypeError"); };
 };
 
 class SystemError : public Error
 {
     public:
         SystemError(const std::string& msg = "Unknown", int _errno = 0, ErrorCode err = ERR_SYSTEM_ERROR) :
-            Error(msg, err, _errno)
+            Error(msg, err, _errno, "SystemError")
         {}
-
-        const char* Format(void) const override { return _format("SystemError"); };
 };
 
 #endif //ERROR_H_23683DA7E6BC4F0F837BE39653E1123C

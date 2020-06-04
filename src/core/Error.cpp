@@ -4,18 +4,19 @@
 
 #include "Error.h"
 
-#include <sstream>
 #include <cstring>
 #include <map>
 
-Error::Error(const std::string &msg, ErrorCode err, int _errno) :
+Error::Error(const std::string& msg, ErrorCode err, int _errno, const std::string& strErrTypeName) :
+    std::runtime_error(""),
     m_strMsg(msg),
     m_errCode(err),
-    m_nErrno(_errno)
+    m_nErrno(_errno),
+    m_strErrTypeName(strErrTypeName)
 {
 }
 
-const char *Error::_format(const char* errTypeName) const
+const char *Error::_format(void) const noexcept
 {
     static const std::map<ErrorCode, const char*> mapErrorCodes = {
         { ERR_UNKNOWN, "ERR_UNKNOWN" },
@@ -27,20 +28,23 @@ const char *Error::_format(const char* errTypeName) const
         { ERR_HTTP_INVALID_STATUS_CODE, "ERR_HTTP_INVALID_STATUS_CODE" }
     };
 
-    if(m_strFormatted.empty())
+    try
     {
-        auto itErrorCodeName = mapErrorCodes.find(m_errCode);
-        if(itErrorCodeName == mapErrorCodes.end())
-            itErrorCodeName = mapErrorCodes.find(ERR_UNKNOWN);  // ERR_UNKNOWN should always be present in the error code names map
+        if(m_strFormatted.empty())
+        {
+            auto itErrorCodeName = mapErrorCodes.find(m_errCode);
+            if(itErrorCodeName == mapErrorCodes.end())
+                itErrorCodeName = mapErrorCodes.find(ERR_UNKNOWN);  // ERR_UNKNOWN should always be present in the error code names map
 
-        std::stringstream strm;
-        strm << errTypeName << " [" << itErrorCodeName->second << "]: " << m_strMsg;
+            m_strFormatted = m_strErrTypeName + " [" + itErrorCodeName->second + "]: " + m_strMsg;
+            if(m_nErrno)
+                m_strFormatted += "; errno: " + std::to_string(m_nErrno) + " (" + strerror(m_nErrno) + ")";
+        }
 
-        if(m_nErrno)
-            strm << "; errno: " << m_nErrno << " (" << strerror(m_nErrno) << ")";
-
-        m_strFormatted = strm.str();
+        return m_strFormatted.c_str();
     }
-
-    return m_strFormatted.c_str();
+    catch(...)
+    {
+        return "<Exception occurred while formatting error description>";
+    }
 }
