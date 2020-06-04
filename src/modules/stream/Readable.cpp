@@ -66,7 +66,7 @@ void stream::Readable::_emitData(void)
     if(!m_bFlowing || m_bDestroyed || m_bEndEmitted)
         return;
 
-    if(!m_rdBuffer.empty())
+    if(!m_rdBuffer.empty() && EVENT_LISTENERS_COUNT(data))
     {
         EMIT_EVENT(data, m_rdBuffer);
         m_rdBuffer.clear();
@@ -91,4 +91,15 @@ void stream::Readable::_notifyRead(void)
         _read();
         _emitData();
     });
+}
+
+void stream::Readable::OnNewListener(const char *szName)
+{
+    Stream::OnNewListener(szName);
+
+    // Since we are expecting only "data" events here, it is reasonable to
+    // skip checking event name. It should not cause any problems
+    // even when some different event will possibly arrive.
+    if(m_bFlowing && !m_rdBuffer.empty() && EVENT_LISTENERS_COUNT(data))
+        NextTick([this]() { _emitData(); });
 }

@@ -55,10 +55,12 @@ class Writable : public virtual Stream
         // Finished state means that there will be no new data in m_wrBuffer and no more
         // calls to _write(). Implementation may choose to gracefully free it's allocated
         // resources after detecting this condition.
+        // This method may emit events synchronously.
         bool _onDrained(void);
 
         // Notifies the stream about irrecoverable error condition while processing the data.
         // No more writes to the stream will be possible after calling this function.
+        // This method may emit events synchronously.
         void _onWriteError(const Error& err);
 
     private:

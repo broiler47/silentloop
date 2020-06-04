@@ -12,7 +12,7 @@ namespace stream
 
 class Readable : public virtual Stream
 {
-    EXPORT_EVENT(data, const std::vector<uint8_t>& vecData)
+    EXPORT_EVENT_WATCHABLE(data, const std::vector<uint8_t>& vecData)
     EXPORT_EVENT(end)
     //EXPORT_EVENT(pause)
     //EXPORT_EVENT(resume)
@@ -48,10 +48,15 @@ class Readable : public virtual Stream
         // data until notified by _read() event. This function always succeeds
         // no matter what value it returns. Incoming data will be buffered
         // if this function was called when stream is not in the readable state.
+        // This method may emit events synchronously.
         bool _push(const void* buf, size_t size);
 
         // Notifies the stream about irrecoverable error condition while processing the data.
+        // This method may emit events synchronously.
         void _onReadError(const Error& err);
+
+    protected:
+        virtual void OnNewListener(const char* szName);
 
     private:
         void _emitData(void);
